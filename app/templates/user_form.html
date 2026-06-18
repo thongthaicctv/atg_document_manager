@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% set is_edit = mode == "edit" %}
+{% set is_self_edit = is_edit and account and current_user and account.id == current_user.id %}
 {% block title %}{{ "Sửa tài khoản" if is_edit else "Tạo tài khoản" }} - {{ app_name }}{% endblock %}
 {% block content %}
 <div class="page-head">
@@ -10,7 +11,7 @@
   <a href="/users" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Danh sách</a>
 </div>
 
-<form method="post" action="{{ '/users/' ~ user.id ~ '/edit' if is_edit else '/users/new' }}" class="surface form-surface">
+<form method="post" action="{{ '/users/' ~ account.id ~ '/edit' if is_edit else '/users/new' }}" class="surface form-surface">
   <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
   <div class="row g-3">
     {% if not is_edit %}
@@ -18,42 +19,63 @@
       <label class="form-label" for="username">Tên đăng nhập</label>
       <input class="form-control" id="username" name="username" required>
     </div>
+    {% else %}
+    <div class="col-12 col-md-4">
+      <label class="form-label">Tên đăng nhập</label>
+      <input class="form-control" value="{{ account.username }}" disabled>
+    </div>
     {% endif %}
+
     <div class="col-12 col-md-4">
       <label class="form-label" for="password">Mật khẩu {{ "mới" if is_edit else "" }}</label>
       <input class="form-control" id="password" name="password" type="password" {% if not is_edit %}required{% endif %}>
     </div>
+
     <div class="col-12 col-md-4">
       <label class="form-label" for="role">Role</label>
+      {% if is_self_edit and current_user.role != "root" %}
+      <input class="form-control" value="{{ account.role|role_label }}" disabled>
+      <input type="hidden" name="role" value="{{ account.role }}">
+      {% else %}
       <select class="form-select" id="role" name="role">
         {% for key, label in user_roles.items() %}
           {% if current_user.role == "root" or key == "user" %}
-          <option value="{{ key }}" {% if user and user.role == key %}selected{% endif %}>{{ label }}</option>
+          <option value="{{ key }}" {% if account and account.role == key %}selected{% endif %}>{{ label }}</option>
           {% endif %}
         {% endfor %}
       </select>
+      {% endif %}
     </div>
+
     <div class="col-12 col-md-6">
       <label class="form-label" for="full_name">Họ tên</label>
-      <input class="form-control" id="full_name" name="full_name" value="{{ user.full_name if user else '' }}" required>
+      <input class="form-control" id="full_name" name="full_name" value="{{ account.full_name if account else '' }}" required>
     </div>
     <div class="col-12 col-md-6">
       <label class="form-label" for="department">Đơn vị</label>
-      <input class="form-control" id="department" name="department" value="{{ user.department if user else '' }}">
+      <select class="form-select" id="department" name="department">
+        <option value="">Chọn đơn vị</option>
+        {% for item in departments %}
+        <option value="{{ item.name }}" {% if account and account.department == item.name %}selected{% endif %}>{{ item.name }}</option>
+        {% endfor %}
+      </select>
+      {% if not departments %}
+      <div class="form-text text-danger">Chưa có phòng ban. Hãy cấu hình tại menu Phân loại phòng ban.</div>
+      {% endif %}
     </div>
     <div class="col-12 col-md-6">
       <label class="form-label" for="phone">Điện thoại</label>
-      <input class="form-control" id="phone" name="phone" value="{{ user.phone if user else '' }}">
+      <input class="form-control" id="phone" name="phone" value="{{ account.phone if account else '' }}">
     </div>
     <div class="col-12 col-md-6">
       <label class="form-label" for="email">Email</label>
-      <input class="form-control" id="email" name="email" type="email" value="{{ user.email if user else '' }}">
+      <input class="form-control" id="email" name="email" type="email" value="{{ account.email if account else '' }}">
     </div>
   </div>
+
   <div class="action-row">
     <button class="btn btn-primary" type="submit"><i class="bi bi-save"></i> Lưu</button>
     <a class="btn btn-outline-secondary" href="/users"><i class="bi bi-x-circle"></i> Hủy</a>
   </div>
 </form>
 {% endblock %}
-

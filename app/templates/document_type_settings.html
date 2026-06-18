@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Phân loại văn bản - {{ app_name }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1 class="h4 fw-bold mb-1">Phân loại văn bản</h1>
+    <p class="text-muted mb-0">Root và admin được phép thêm, sửa, rẽ nhánh phân loại văn bản; chỉ root được xóa.</p>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-12 col-lg-4">
+    <form method="post" action="/settings/document-types" class="surface">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <h2 class="section-title">Thêm phân loại văn bản</h2>
+      <div class="mb-3">
+        <label class="form-label" for="name">Tên phân loại văn bản</label>
+        <input class="form-control" id="name" name="name" placeholder="Ví dụ: Công văn đến" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label" for="branch">Nhánh sử dụng</label>
+        <select class="form-select" id="branch" name="branch">
+          {% for key, label in document_type_branches.items() %}
+          <option value="{{ key }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button class="btn btn-primary" type="submit"><i class="bi bi-plus-circle"></i> Thêm</button>
+    </form>
+  </div>
+  <div class="col-12 col-lg-8">
+    <section class="surface">
+      <h2 class="section-title">Danh sách phân loại văn bản</h2>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Tên phân loại văn bản</th>
+              <th>Mã</th>
+              <th>Nhánh sử dụng</th>
+              <th>Ngày tạo</th>
+              <th class="text-end">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in document_types %}
+            <tr>
+              <td>
+                <input class="form-control form-control-sm" name="name" value="{{ item.name }}" form="edit-type-{{ item.id }}" required>
+              </td>
+              <td>{{ item.code or "-" }}</td>
+              <td>
+                <select class="form-select form-select-sm" name="branch" form="edit-type-{{ item.id }}">
+                  {% for key, label in document_type_branches.items() %}
+                  <option value="{{ key }}" {% if item.branch == key %}selected{% endif %}>{{ label }}</option>
+                  {% endfor %}
+                </select>
+              </td>
+              <td>{{ item.created_at.strftime("%d/%m/%Y") if item.created_at else "-" }}</td>
+              <td class="text-end">
+                <form id="edit-type-{{ item.id }}" method="post" action="/settings/document-types/{{ item.id }}/edit" class="d-inline">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                </form>
+                <button class="btn btn-sm btn-outline-primary" type="submit" form="edit-type-{{ item.id }}" title="Lưu"><i class="bi bi-save"></i></button>
+                {% if current_user.role == "root" %}
+                <form method="post" action="/settings/document-types/{{ item.id }}/delete" class="d-inline" data-confirm="Xóa phân loại văn bản này khỏi danh sách sổ xuống?">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                  <button class="btn btn-sm btn-outline-danger" type="submit" title="Xóa"><i class="bi bi-trash"></i></button>
+                </form>
+                {% endif %}
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="text-center text-muted py-4">Chưa có phân loại văn bản.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}

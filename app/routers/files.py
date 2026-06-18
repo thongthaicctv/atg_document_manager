@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, Uplo
 from fastapi.responses import FileResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
-from app.dependencies import get_current_user, get_db
+from app.dependencies import get_current_user, get_db, require_root
 from app.models.document import Document
 from app.models.document_file import DocumentFile
 from app.models.user import User
@@ -90,12 +90,11 @@ def delete_file(
     current_user: User = Depends(get_current_user),
 ):
     check_csrf_token(request, csrf_token)
+    require_root(current_user)
     record = db.get(DocumentFile, file_id)
     if not record:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy file.")
-    require_document_permission(db, current_user, record.document, "can_upload_file")
     document_id = record.document_id
     file_service.delete_document_file(db, file=record, user=current_user, ip_address=client_ip(request))
     db.commit()
     return RedirectResponse(f"/documents/{document_id}", status_code=303)
-

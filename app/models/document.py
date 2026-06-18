@@ -1,6 +1,6 @@
-from datetime import datetime
+from datetime import date, datetime
 
-from sqlalchemy import DateTime, ForeignKey, String, Text
+from sqlalchemy import Date, DateTime, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -19,6 +19,8 @@ class Document(Base):
     proposer_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     proposer_name: Mapped[str | None] = mapped_column(String(255), index=True)
     department: Mapped[str | None] = mapped_column(String(255), index=True)
+    sender_department: Mapped[str | None] = mapped_column(String(255), index=True)
+    receiver_department: Mapped[str | None] = mapped_column(String(255), index=True)
     owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
     created_by: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
     updated_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
@@ -29,6 +31,9 @@ class Document(Base):
     approved_at: Mapped[datetime | None] = mapped_column(DateTime)
     issued_at: Mapped[datetime | None] = mapped_column(DateTime)
     archived_at: Mapped[datetime | None] = mapped_column(DateTime)
+    due_date: Mapped[date | None] = mapped_column(Date, nullable=True, index=True)
+    reminder_dismissed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    reminder_dismissed_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     note: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -37,7 +42,7 @@ class Document(Base):
     creator = relationship("User", foreign_keys=[created_by], back_populates="created_documents")
     updater = relationship("User", foreign_keys=[updated_by])
     proposer = relationship("User", foreign_keys=[proposer_id])
+    reminder_dismissed_user = relationship("User", foreign_keys=[reminder_dismissed_by])
     files = relationship("DocumentFile", back_populates="document", cascade="all, delete-orphan")
     logs = relationship("DocumentLog", back_populates="document", cascade="all, delete-orphan", order_by="DocumentLog.performed_at.desc()")
     permissions = relationship("DocumentPermission", back_populates="document", cascade="all, delete-orphan")
-

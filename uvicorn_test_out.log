@@ -1,0 +1,6 @@
+INFO:     127.0.0.1:62637 - "GET /login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62638 - "POST /login HTTP/1.1" 303 See Other
+INFO:     127.0.0.1:62640 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62641 - "GET /documents/new HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62642 - "POST /documents/new HTTP/1.1" 303 See Other
+INFO:     127.0.0.1:62643 - "GET /documents/7 HTTP/1.1" 200 OK

@@ -22,6 +22,10 @@ def dashboard(
     default_root_password = current_user.username == "root" and verify_password("admin@123", current_user.password_hash)
     return templates.TemplateResponse(
         "dashboard.html",
-        context(request, current_user, counts=counts, default_root_password=default_root_password),
+        context(
+            request,
+            current_user,
+            counts=counts,
+            default_root_password=default_root_password,
+        ),
     )
-

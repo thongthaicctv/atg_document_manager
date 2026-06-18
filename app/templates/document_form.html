@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 {% set is_edit = mode == "edit" %}
-{% block title %}{{ "Sửa văn bản" if is_edit else "Tạo văn bản" }} - {{ app_name }}{% endblock %}
+{% block title %}{{ "Sửa văn bản" if is_edit else form_branch_label }} - {{ app_name }}{% endblock %}
 {% block content %}
 <div class="page-head">
   <div>
-    <h1 class="h4 fw-bold mb-1">{{ "Sửa văn bản" if is_edit else "Tạo văn bản đề xuất" }}</h1>
-    <p class="text-muted mb-0">Thông tin nghiệp vụ và file đính kèm của văn bản.</p>
+    <h1 class="h4 fw-bold mb-1">{{ "Sửa văn bản" if is_edit else form_branch_label }}</h1>
+    <p class="text-muted mb-0">Số thứ tự dự kiến sẽ được hệ thống lưu cho văn bản này.</p>
   </div>
   {% if is_edit %}
   <a href="/documents/{{ document.id }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Quay lại</a>
@@ -18,16 +18,24 @@
   <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
   <div class="row g-3">
     <div class="col-12 col-md-3">
-      <label class="form-label" for="document_code">Số văn bản</label>
-      <input class="form-control" id="document_code" name="document_code" value="{{ document.document_code if document else '' }}">
+      <label class="form-label" for="document_code">Số thứ tự</label>
+      <input class="form-control" id="document_code" value="{{ document.document_code if document else next_document_code }}" disabled>
     </div>
     <div class="col-12 col-md-3">
       <label class="form-label" for="document_number">Số/ký hiệu</label>
-      <input class="form-control" id="document_number" name="document_number" value="{{ document.document_number if document else '' }}">
+      <input class="form-control" id="document_number" name="document_number" value="{{ document.document_number if document else '' }}" placeholder="ví dụ:thtt20260630" required>
     </div>
     <div class="col-12 col-md-3">
-      <label class="form-label" for="document_type">Loại văn bản</label>
-      <input class="form-control" id="document_type" name="document_type" value="{{ document.document_type if document else '' }}">
+      <label class="form-label" for="document_type">Phân loại văn bản</label>
+      <select class="form-select" id="document_type" name="document_type">
+        <option value="">Chọn phân loại văn bản</option>
+        {% for item in document_types %}
+        <option value="{{ item.name }}" {% if document and document.document_type == item.name %}selected{% endif %}>{{ item.name }}</option>
+        {% endfor %}
+      </select>
+      {% if not document_types %}
+      <div class="form-text text-danger">Chưa có phân loại văn bản cho nhánh {{ form_branch_label }}. Hãy cấu hình tại menu Phân loại văn bản.</div>
+      {% endif %}
     </div>
     <div class="col-12 col-md-3">
       <label class="form-label" for="priority">Mức độ ưu tiên</label>
@@ -37,10 +45,25 @@
         {% endfor %}
       </select>
     </div>
-    <div class="col-12">
+
+    <div class="col-12 col-md-3">
+      <label class="form-label" for="due_date">{{ date_label }}</label>
+      <input class="form-control" id="due_date" name="due_date" type="date" value="{{ document.due_date.isoformat() if document and document.due_date else '' }}">
+      {% if not show_received_time %}
+      <div class="form-text">Nếu không có hạn xử lý thì để trống.</div>
+      {% endif %}
+    </div>
+    {% if show_received_time %}
+    <div class="col-12 col-md-3">
+      <label class="form-label" for="received_time">Giờ nhận</label>
+      <input class="form-control" id="received_time" name="received_time" type="time" value="{{ received_time or '' }}">
+    </div>
+    {% endif %}
+    <div class="col-12 {% if show_received_time %}col-md-6{% else %}col-md-9{% endif %}">
       <label class="form-label" for="title">Tiêu đề</label>
       <input class="form-control" id="title" name="title" value="{{ document.title if document else '' }}" required>
     </div>
+
     <div class="col-12 col-lg-6">
       <label class="form-label" for="summary">Trích yếu</label>
       <textarea class="form-control" id="summary" name="summary" rows="4">{{ document.summary if document else '' }}</textarea>
@@ -50,21 +73,57 @@
       <textarea class="form-control" id="content" name="content" rows="4">{{ document.content if document else '' }}</textarea>
     </div>
     <div class="col-12 col-md-4">
-      <label class="form-label" for="proposer_name">Người đề xuất</label>
-      <input class="form-control" id="proposer_name" name="proposer_name" value="{{ document.proposer_name if document else current_user.full_name }}">
+      <label class="form-label" for="proposer_name">Người nhận văn bản / người đề xuất</label>
+      <input class="form-control" id="proposer_name" value="{{ document.proposer_name if document else current_user.full_name }}" disabled>
     </div>
+    {% if show_sender_department %}
     <div class="col-12 col-md-4">
-      <label class="form-label" for="department">Đơn vị</label>
-      <input class="form-control" id="department" name="department" value="{{ document.department if document else current_user.department or '' }}">
+      <label class="form-label" for="sender_department">Đơn vị gửi đến</label>
+      {% set selected_sender_department = document.sender_department if document else "" %}
+      <select class="form-select" id="sender_department" name="sender_department">
+        <option value="">Chọn đơn vị gửi đến</option>
+        {% for item in departments %}
+        <option value="{{ item.name }}" {% if selected_sender_department == item.name %}selected{% endif %}>{{ item.name }}</option>
+        {% endfor %}
+      </select>
+      {% if not departments %}
+      <div class="form-text text-danger">Chưa có phòng ban. Hãy cấu hình tại menu Phân loại phòng ban.</div>
+      {% endif %}
     </div>
+    {% endif %}
+    {% if show_receiver_department %}
     <div class="col-12 col-md-4">
-      <label class="form-label" for="note">Ghi chú</label>
-      <input class="form-control" id="note" name="note" value="{{ document.note if document else '' }}">
+      <label class="form-label" for="receiver_department">Đơn vị nhận văn bản</label>
+      <select class="form-select" id="receiver_department" name="receiver_department">
+        <option value="">Chọn đơn vị nhận văn bản</option>
+        {% for item in departments %}
+        <option value="{{ item.name }}" {% if document and document.receiver_department == item.name %}selected{% endif %}>{{ item.name }}</option>
+        {% endfor %}
+      </select>
+      {% if not departments %}
+      <div class="form-text text-danger">Chưa có phòng ban. Hãy cấu hình tại menu Phân loại phòng ban.</div>
+      {% endif %}
     </div>
+    {% endif %}
     {% if not is_edit %}
     <div class="col-12">
       <label class="form-label" for="files">File đính kèm</label>
       <input class="form-control" id="files" name="files" type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx">
+      <div class="multi-capture-box" data-multi-capture data-capture-field-name="scan_images" data-capture-unit="trang" data-capture-empty="Chưa có trang nào">
+        <div data-capture-holder hidden></div>
+        <div class="d-flex flex-wrap align-items-start justify-content-between gap-2">
+          <div>
+            <div class="fw-semibold"><i class="bi bi-file-earmark-pdf"></i> Scan văn bản sang PDF</div>
+            <div class="text-muted small">Chụp hoặc chọn nhiều trang; hệ thống ghép thành một file PDF khi lưu.</div>
+          </div>
+          <div class="capture-actions">
+            <input class="form-control capture-camera-input" name="scan_images" type="file" accept="image/*" capture="environment" multiple data-capture-input>
+            <button class="btn btn-outline-secondary" type="button" data-capture-clear disabled><i class="bi bi-x-circle"></i> Xóa trang</button>
+          </div>
+        </div>
+        <div class="capture-count small mt-2" data-capture-count>Chưa có trang nào</div>
+        <div class="captured-file-list mt-2" data-capture-list></div>
+      </div>
     </div>
     {% endif %}
   </div>

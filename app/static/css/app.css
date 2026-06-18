@@ -14,6 +14,48 @@ body {
   background: linear-gradient(90deg, var(--atg-blue), var(--atg-blue-2));
 }
 
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.app-sidebar {
+  align-items: flex-start;
+  flex: 0 0 248px;
+  min-height: 100vh;
+  position: sticky;
+  top: 0;
+}
+
+.app-sidebar .container-fluid {
+  min-height: 100vh;
+  padding: 1rem;
+}
+
+.app-sidebar .navbar-brand {
+  margin: 0 0 1rem;
+  white-space: normal;
+}
+
+.app-sidebar .nav-link {
+  border-radius: 6px;
+  padding: .65rem .75rem;
+}
+
+.app-sidebar .nav-link:hover,
+.app-sidebar .nav-link:focus {
+  background: rgb(255 255 255 / 12%);
+}
+
+.app-main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.sidebar-user {
+  border-top: 1px solid rgb(255 255 255 / 18%);
+}
+
 .page-head {
   display: flex;
   align-items: flex-start;
@@ -129,6 +171,74 @@ dd {
   padding: .9rem;
 }
 
+.multi-capture-box {
+  margin-top: .75rem;
+  padding: .75rem;
+  border: 1px solid #d7e3ef;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.capture-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+}
+
+.capture-camera-input {
+  flex: 1 1 260px;
+  max-width: 360px;
+}
+
+.capture-file-button {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.capture-native-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.capture-count,
+.captured-file-size {
+  color: #52616f;
+}
+
+.captured-file-list {
+  display: grid;
+  gap: .4rem;
+}
+
+.captured-file-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  min-height: 38px;
+  padding: .45rem .55rem;
+  border: 1px solid #e5edf5;
+  border-radius: 6px;
+  background: #f8fbfd;
+}
+
+.captured-file-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.captured-file-size {
+  flex: 0 0 auto;
+  font-size: .83rem;
+}
+
 .permission-chip {
   border: 1px solid #e5edf5;
   border-radius: 8px;
@@ -203,6 +313,31 @@ dd {
   min-height: 38px;
 }
 
+@media (max-width: 991.98px) {
+  .app-shell {
+    display: block;
+  }
+
+  .app-sidebar {
+    min-height: auto;
+    position: sticky;
+  }
+
+  .app-sidebar .container-fluid {
+    min-height: auto;
+    padding: .75rem 1rem;
+  }
+
+  .app-sidebar .navbar-brand {
+    margin: 0;
+  }
+
+  .sidebar-user {
+    border-top: 0;
+    padding-top: .75rem;
+  }
+}
+
 @media (max-width: 768px) {
   .page-head {
     flex-direction: column;
@@ -221,5 +356,17 @@ dd {
   .table {
     min-width: 760px;
   }
-}
 
+  .capture-actions,
+  .capture-actions .capture-camera-input,
+  .capture-actions .btn {
+    width: 100%;
+    max-width: none;
+  }
+
+  .captured-file-item {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: .2rem;
+  }
+}

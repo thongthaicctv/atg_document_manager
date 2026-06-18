@@ -7,8 +7,11 @@ from app.models.user import User
 from app.security import hash_password
 
 
-def list_users(db: Session) -> list[User]:
-    return list(db.execute(select(User).order_by(User.role, User.full_name)).scalars())
+def list_users(db: Session, *, include_disabled: bool = False) -> list[User]:
+    stmt = select(User)
+    if not include_disabled:
+        stmt = stmt.where(User.status != "disabled")
+    return list(db.execute(stmt.order_by(User.role, User.full_name)).scalars())
 
 
 def get_user_by_username(db: Session, username: str) -> User | None:
@@ -62,5 +65,13 @@ def update_user(
 
 def set_user_status(user: User, status: str) -> User:
     user.status = status
+    return user
+
+
+def soft_delete_user(user: User) -> User:
+    suffix = f"_deleted_{user.id}"
+    if not user.username.endswith(suffix):
+        user.username = f"{user.username}{suffix}"
+    user.status = "disabled"
     return user
 

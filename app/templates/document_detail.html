@@ -29,11 +29,25 @@
     <section class="surface mb-3">
       <h2 class="section-title">Thông tin văn bản</h2>
       <dl class="detail-grid">
-        <div><dt>Số văn bản</dt><dd>{{ document.document_code or "-" }}</dd></div>
+        <div><dt>Số thứ tự</dt><dd>{{ document.document_code or "-" }}</dd></div>
         <div><dt>Số/ký hiệu</dt><dd>{{ document.document_number or "-" }}</dd></div>
-        <div><dt>Loại văn bản</dt><dd>{{ document.document_type or "-" }}</dd></div>
-        <div><dt>Người đề xuất</dt><dd>{{ document.proposer_name or "-" }}</dd></div>
-        <div><dt>Đơn vị</dt><dd>{{ document.department or "-" }}</dd></div>
+        <div><dt>Phân loại văn bản</dt><dd>{{ document.document_type or "-" }}</dd></div>
+        <div>
+          <dt>{{ date_label }}</dt>
+          <dd>
+            {% if document_branch == "incoming" %}
+              {{ document|received_time_label }}
+            {% else %}
+              {{ document.due_date.strftime("%d/%m/%Y") if document.due_date else "-" }}
+            {% endif %}
+          </dd>
+        </div>
+        <div><dt>Người nhận văn bản / người đề xuất</dt><dd>{{ document.proposer_name or "-" }}</dd></div>
+        {% if document_branch == "incoming" %}
+        <div><dt>Đơn vị gửi đến</dt><dd>{{ document.sender_department or "-" }}</dd></div>
+        {% else %}
+        <div><dt>Đơn vị nhận văn bản</dt><dd>{{ document.receiver_department or "-" }}</dd></div>
+        {% endif %}
         <div><dt>Chủ văn bản</dt><dd>{{ document.owner.full_name if document.owner else "-" }}</dd></div>
         <div><dt>Người tạo</dt><dd>{{ document.creator.full_name if document.creator else "-" }}</dd></div>
         <div><dt>Lãnh đạo/người cho ý kiến</dt><dd>{{ document.leader_name or "-" }}</dd></div>
@@ -46,9 +60,6 @@
         <h3 class="h6 fw-bold">Nội dung</h3>
         <p class="preserve-lines">{{ document.content or "Chưa có nội dung." }}</p>
       </div>
-      {% if document.note %}
-      <div class="note-box mt-3">{{ document.note }}</div>
-      {% endif %}
     </section>
 
     <section class="surface mb-3">
@@ -78,7 +89,7 @@
               <td>{{ file.uploaded_at.strftime("%d/%m/%Y %H:%M") if file.uploaded_at else "" }}</td>
               <td class="text-end">
                 <a class="btn btn-sm btn-outline-primary" href="/files/{{ file.id }}/download" title="Tải xuống"><i class="bi bi-download"></i></a>
-                {% if permissions.can_upload_file %}
+                {% if current_user.role == "root" %}
                 <form method="post" action="/files/{{ file.id }}/delete" class="d-inline" data-confirm="Xóa file này?">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                   <button class="btn btn-sm btn-outline-danger" type="submit" title="Xóa file"><i class="bi bi-trash"></i></button>
@@ -109,8 +120,21 @@
         <div class="col-12 col-lg-6">
           <form method="post" action="/documents/{{ document.id }}/scan-pdf" enctype="multipart/form-data" class="upload-box">
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-            <label class="form-label" for="scan_images">Chụp ảnh/scan thành PDF</label>
-            <input class="form-control" id="scan_images" name="scan_images" type="file" accept="image/*" capture="environment" multiple>
+            <div class="multi-capture-box m-0" data-multi-capture data-capture-field-name="scan_images" data-capture-unit="trang" data-capture-empty="Chưa có trang nào">
+              <div data-capture-holder hidden></div>
+              <div class="d-flex flex-wrap align-items-start justify-content-between gap-2">
+                <div>
+                  <div class="fw-semibold"><i class="bi bi-file-earmark-pdf"></i> Scan nhiều trang sang PDF</div>
+                  <div class="text-muted small">Chụp từng trang hoặc chọn nhiều ảnh; hệ thống ghép thành một file PDF.</div>
+                </div>
+                <div class="capture-actions">
+                  <input class="form-control capture-camera-input" id="scan_images" name="scan_images" type="file" accept="image/*" capture="environment" multiple data-capture-input>
+                  <button class="btn btn-outline-secondary" type="button" data-capture-clear disabled><i class="bi bi-x-circle"></i> Xóa trang</button>
+                </div>
+              </div>
+              <div class="capture-count small mt-2" data-capture-count>Chưa có trang nào</div>
+              <div class="captured-file-list mt-2" data-capture-list></div>
+            </div>
             <button class="btn btn-success mt-3" type="submit"><i class="bi bi-camera"></i> Ghép PDF</button>
           </form>
         </div>
@@ -164,6 +188,9 @@
             {% if log.old_status or log.new_status %}
             <div class="small">{{ log.old_status|status_label }} → {{ log.new_status|status_label }}</div>
             {% endif %}
+            {% if log.leader_name %}
+            <div class="small"><span class="text-muted">Lãnh đạo/người cho ý kiến:</span> {{ log.leader_name }}</div>
+            {% endif %}
             {% if log.note %}<div class="small preserve-lines">{{ log.note }}</div>{% endif %}
           </div>
         </div>
@@ -175,4 +202,3 @@
   </div>
 </div>
 {% endblock %}
-

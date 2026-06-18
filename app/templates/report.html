@@ -4,7 +4,7 @@
 <div class="page-head">
   <div>
     <h1 class="h4 fw-bold mb-1">Báo cáo</h1>
-    <p class="text-muted mb-0">Xuất Excel theo thời gian, trạng thái, người tạo, chủ văn bản và đơn vị.</p>
+    <p class="text-muted mb-0">Xuất Excel theo thời gian, trạng thái, người tạo, chủ văn bản và phòng ban.</p>
   </div>
 </div>
 
@@ -36,7 +36,7 @@
       <input class="form-control" id="owner_name" name="owner_name">
     </div>
     <div class="col-12 col-lg-2">
-      <label class="form-label" for="proposer_name">Người đề xuất</label>
+      <label class="form-label" for="proposer_name">Người nhận/đề xuất</label>
       <input class="form-control" id="proposer_name" name="proposer_name">
     </div>
     <div class="col-12 col-lg-2">
@@ -44,8 +44,31 @@
       <input class="form-control" id="department" name="department">
     </div>
     <div class="col-12 col-lg-2">
-      <label class="form-label" for="document_type">Loại văn bản</label>
-      <input class="form-control" id="document_type" name="document_type">
+      <label class="form-label" for="sender_department">Đơn vị gửi đến</label>
+      <select class="form-select" id="sender_department" name="sender_department">
+        <option value="">Tất cả</option>
+        {% for item in departments %}
+        <option value="{{ item.name }}">{{ item.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-12 col-lg-2">
+      <label class="form-label" for="receiver_department">Đơn vị nhận văn bản</label>
+      <select class="form-select" id="receiver_department" name="receiver_department">
+        <option value="">Tất cả</option>
+        {% for item in departments %}
+        <option value="{{ item.name }}">{{ item.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-12 col-lg-2">
+      <label class="form-label" for="document_type">Phân loại văn bản</label>
+      <select class="form-select" id="document_type" name="document_type">
+        <option value="">Tất cả</option>
+        {% for item in document_types %}
+        <option value="{{ item.name }}">{{ item.name }}</option>
+        {% endfor %}
+      </select>
     </div>
     <div class="col-12 col-lg-2 d-grid">
       <button class="btn btn-success" type="submit"><i class="bi bi-file-earmark-excel"></i> Xuất Excel</button>
@@ -53,4 +76,3 @@
   </form>
 </section>
 {% endblock %}
-

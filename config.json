@@ -5,8 +5,8 @@
   "database": {
     "host": "127.0.0.1",
     "port": 3306,
-    "user": "atg_doc_user",
-    "password": "atg_password",
+    "user": "atg_admin",
+    "password": "atg_123456",
     "database": "atg_document_system"
   },
   "storage": {

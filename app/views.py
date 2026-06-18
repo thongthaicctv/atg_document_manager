@@ -9,6 +9,7 @@ from fastapi.templating import Jinja2Templates
 from app.config import get_config
 from app.constants import DOCUMENT_PRIORITIES, DOCUMENT_STATUSES, LOG_ACTIONS, STATUS_BADGE_CLASSES, USER_ROLES, USER_STATUSES
 from app.security import get_csrf_token
+from app.services.document_service import extract_received_time
 
 TEMPLATES_DIR = Path(__file__).resolve().parent / "templates"
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
@@ -38,12 +39,21 @@ def action_label(action: str | None) -> str:
     return LOG_ACTIONS.get(action or "", action or "")
 
 
+def received_time_label(document: Any) -> str:
+    if not document or not getattr(document, "due_date", None):
+        return "-"
+    value = document.due_date.strftime("%d/%m/%Y")
+    received_time = extract_received_time(getattr(document, "note", None))
+    return f"{value} {received_time}" if received_time else value
+
+
 templates.env.filters["status_label"] = status_label
 templates.env.filters["status_class"] = status_class
 templates.env.filters["priority_label"] = priority_label
 templates.env.filters["role_label"] = role_label
 templates.env.filters["user_status_label"] = user_status_label
 templates.env.filters["action_label"] = action_label
+templates.env.filters["received_time_label"] = received_time_label
 
 
 def client_ip(request: Request) -> str | None:
@@ -53,12 +63,12 @@ def client_ip(request: Request) -> str | None:
     return request.client.host if request.client else None
 
 
-def context(request: Request, user: Any | None = None, **extra: Any) -> dict[str, Any]:
+def context(request: Request, current_user: Any | None = None, **extra: Any) -> dict[str, Any]:
     base = {
         "request": request,
         "app_name": get_config()["app_name"],
         "csrf_token": get_csrf_token(request),
-        "current_user": user,
+        "current_user": current_user,
         "document_statuses": DOCUMENT_STATUSES,
         "document_priorities": DOCUMENT_PRIORITIES,
         "user_roles": USER_ROLES,

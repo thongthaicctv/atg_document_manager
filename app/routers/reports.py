@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.dependencies import get_current_user, get_db, require_root_or_admin
 from app.models.user import User
+from app.services import department_service, document_type_service
 from app.services.report_service import export_documents_excel
 from app.views import context, templates
 
@@ -17,10 +18,16 @@ router = APIRouter(prefix="/reports", tags=["reports"])
 @router.get("")
 def report_form(
     request: Request,
+    db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     require_root_or_admin(current_user)
-    return templates.TemplateResponse("report.html", context(request, current_user, filters=dict(request.query_params)))
+    document_types = document_type_service.list_active_document_types(db)
+    departments = department_service.list_active_departments(db)
+    return templates.TemplateResponse(
+        "report.html",
+        context(request, current_user, filters=dict(request.query_params), document_types=document_types, departments=departments),
+    )
 
 
 @router.get("/export")
@@ -32,6 +39,8 @@ def export_report(
     owner_name: str | None = Query(None),
     proposer_name: str | None = Query(None),
     department: str | None = Query(None),
+    sender_department: str | None = Query(None),
+    receiver_department: str | None = Query(None),
     document_type: str | None = Query(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -46,6 +55,8 @@ def export_report(
         owner_name=owner_name,
         proposer_name=proposer_name,
         department=department,
+        sender_department=sender_department,
+        receiver_department=receiver_department,
         document_type=document_type,
     )
     return FileResponse(path, filename=path.name, media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")

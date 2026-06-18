@@ -5,7 +5,7 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.dependencies import get_current_user, get_db
+from app.dependencies import get_current_user, get_db, require_root
 from app.models.document import Document
 from app.models.document_permission import DocumentPermission
 from app.models.user import User
@@ -90,6 +90,7 @@ def revoke(
     current_user: User = Depends(get_current_user),
 ):
     check_csrf_token(request, csrf_token)
+    require_root(current_user)
     document = _get_document_or_404(db, document_id)
     require_document_permission(db, current_user, document, "can_share")
     permission = db.execute(
@@ -103,4 +104,3 @@ def revoke(
     revoke_permission(db, permission=permission, performed_by=current_user.id, ip_address=client_ip(request))
     db.commit()
     return RedirectResponse(f"/documents/{document.id}/permissions", status_code=303)
-

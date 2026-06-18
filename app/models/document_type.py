@@ -12,6 +12,6 @@ class DocumentType(Base):
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     code: Mapped[str | None] = mapped_column(String(80), unique=True)
+    branch: Mapped[str] = mapped_column(String(20), nullable=False, default="outgoing", index=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-

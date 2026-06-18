@@ -66,10 +66,14 @@
               <td>{% if permission.can_upload_file %}<i class="bi bi-check2 text-success"></i>{% endif %}</td>
               <td>{% if permission.can_share %}<i class="bi bi-check2 text-success"></i>{% endif %}</td>
               <td class="text-end">
+                {% if current_user.role == "root" %}
                 <form method="post" action="/documents/{{ document.id }}/permissions/{{ permission.id }}/revoke" data-confirm="Thu hồi quyền này?">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                   <button class="btn btn-sm btn-outline-danger" type="submit" title="Thu hồi quyền"><i class="bi bi-person-x"></i></button>
                 </form>
+                {% else %}
+                <span class="text-muted">-</span>
+                {% endif %}
               </td>
             </tr>
             {% else %}
@@ -82,4 +86,3 @@
   </div>
 </div>
 {% endblock %}
-

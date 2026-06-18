@@ -18,7 +18,7 @@ pip install -r requirements.txt
 setup_mariadb.bat
 ```
 
-File `setup_mariadb.sql` đang dùng mật khẩu mẫu `atg_password`, phải khớp với `config.json`.
+Lệnh này đọc trực tiếp `config.json` để tạo đúng database, user và password đang cấu hình.
 
 5. Khởi tạo bảng và tài khoản root:
 

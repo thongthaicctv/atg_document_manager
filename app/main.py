@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.config import get_config
-from app.routers import auth, dashboard, documents, files, permissions, reports, users
+from app.routers import auth, dashboard, documents, files, permissions, reports, settings, users
 from app.views import context, templates
 
 config = get_config()
@@ -33,6 +33,7 @@ app.include_router(files.router)
 app.include_router(permissions.router)
 app.include_router(users.router)
 app.include_router(reports.router)
+app.include_router(settings.router)
 
 
 @app.exception_handler(HTTPException)

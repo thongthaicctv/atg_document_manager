@@ -19,7 +19,7 @@ DANGEROUS_EXTENSIONS = {"exe", "bat", "cmd", "js", "vbs", "ps1", "sh"}
 
 
 def _safe_original_name(name: str) -> str:
-    cleaned = re.sub(r"[^A-Za-z0-9_.()\\- ]+", "_", name).strip(" .")
+    cleaned = re.sub(r"[^A-Za-z0-9_.() -]+", "_", name).strip(" .")
     return cleaned or "file"
 
 
@@ -159,4 +159,3 @@ def copy_generated_pdf(
         ip_address=ip_address,
     )
     return record
-

@@ -4,7 +4,7 @@
 <div class="page-head">
   <div>
     <h1 class="h4 fw-bold mb-1">Quản lý tài khoản</h1>
-    <p class="text-muted mb-0">Tạo, sửa, khóa hoặc mở tài khoản cán bộ.</p>
+    <p class="text-muted mb-0">Root được xóa tài khoản; admin được tạo, sửa, khóa/mở tài khoản cán bộ.</p>
   </div>
   <a href="/users/new" class="btn btn-primary"><i class="bi bi-person-plus"></i> Tạo tài khoản</a>
 </div>
@@ -24,31 +24,47 @@
       </tr>
     </thead>
     <tbody>
-      {% for user in users %}
+      {% for account in users %}
       <tr>
-        <td class="fw-semibold">{{ user.username }}</td>
-        <td>{{ user.full_name }}</td>
-        <td>{{ user.department or "-" }}</td>
+        <td class="fw-semibold">{{ account.username }}</td>
+        <td>{{ account.full_name }}</td>
+        <td>{{ account.department or "-" }}</td>
         <td>
-          <div>{{ user.phone or "-" }}</div>
-          <div class="small text-muted">{{ user.email or "" }}</div>
+          <div>{{ account.phone or "-" }}</div>
+          <div class="small text-muted">{{ account.email or "" }}</div>
         </td>
-        <td><span class="badge text-bg-light border">{{ user.role|role_label }}</span></td>
-        <td>{{ user.status|user_status_label }}</td>
-        <td>{{ user.last_login.strftime("%d/%m/%Y %H:%M") if user.last_login else "-" }}</td>
+        <td><span class="badge text-bg-light border">{{ account.role|role_label }}</span></td>
+        <td>{{ account.status|user_status_label }}</td>
+        <td>{{ account.last_login.strftime("%d/%m/%Y %H:%M") if account.last_login else "-" }}</td>
         <td class="text-end">
-          <a class="btn btn-sm btn-outline-primary" href="/users/{{ user.id }}/edit" title="Sửa"><i class="bi bi-pencil-square"></i></a>
-          {% if user.status == "active" %}
-          <form method="post" action="/users/{{ user.id }}/status" class="d-inline" data-confirm="Khóa tài khoản này?">
+          <a class="btn btn-sm btn-outline-primary" href="/users/{{ account.id }}/edit" title="Sửa">
+            <i class="bi bi-pencil-square"></i>
+          </a>
+
+          {% if account.status == "active" %}
+          <form method="post" action="/users/{{ account.id }}/status" class="d-inline" data-confirm="Khóa tài khoản này?">
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <input type="hidden" name="new_status" value="locked">
-            <button class="btn btn-sm btn-outline-warning" type="submit" title="Khóa"><i class="bi bi-lock"></i></button>
+            <button class="btn btn-sm btn-outline-warning" type="submit" title="Khóa">
+              <i class="bi bi-lock"></i>
+            </button>
           </form>
           {% else %}
-          <form method="post" action="/users/{{ user.id }}/status" class="d-inline">
+          <form method="post" action="/users/{{ account.id }}/status" class="d-inline">
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <input type="hidden" name="new_status" value="active">
-            <button class="btn btn-sm btn-outline-success" type="submit" title="Mở khóa"><i class="bi bi-unlock"></i></button>
+            <button class="btn btn-sm btn-outline-success" type="submit" title="Mở khóa">
+              <i class="bi bi-unlock"></i>
+            </button>
+          </form>
+          {% endif %}
+
+          {% if current_user.role == "root" and account.id != current_user.id %}
+          <form method="post" action="/users/{{ account.id }}/delete" class="d-inline" data-confirm="Xóa tài khoản này? Tài khoản sẽ bị ẩn và không thể đăng nhập.">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button class="btn btn-sm btn-outline-danger" type="submit" title="Xóa">
+              <i class="bi bi-trash"></i>
+            </button>
           </form>
           {% endif %}
         </td>
@@ -60,4 +76,3 @@
   </table>
 </section>
 {% endblock %}
-

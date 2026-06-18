@@ -33,11 +33,11 @@ def export_documents_excel(db: Session, **filters) -> Path:
     header_font = Font(name="Times New Roman", size=13, bold=True, color="FFFFFF")
     header_fill = PatternFill("solid", fgColor="1F4E79")
 
-    ws.merge_cells("A1:O1")
+    ws.merge_cells("A1:Q1")
     ws["A1"] = "BÁO CÁO QUẢN LÝ VĂN BẢN ĐỀ XUẤT"
     ws["A1"].font = title_font
     ws["A1"].alignment = Alignment(horizontal="center")
-    ws.merge_cells("A2:O2")
+    ws.merge_cells("A2:Q2")
     ws["A2"] = f"Ngày xuất báo cáo: {datetime.now():%d/%m/%Y %H:%M}"
     ws["A2"].font = normal_font
     ws["A2"].alignment = Alignment(horizontal="center")
@@ -56,13 +56,15 @@ def export_documents_excel(db: Session, **filters) -> Path:
 
     headers = [
         "STT",
-        "Số văn bản",
+        "Số thứ tự",
         "Số/ký hiệu",
         "Tiêu đề",
-        "Người đề xuất",
+        "Người nhận/đề xuất",
         "Người tạo",
         "Chủ văn bản",
-        "Đơn vị",
+        "Đơn vị hồ sơ",
+        "Đơn vị gửi đến",
+        "Đơn vị nhận văn bản",
         "Trạng thái hiện tại",
         "Ngày tạo",
         "Ngày cập nhật cuối",
@@ -90,6 +92,8 @@ def export_documents_excel(db: Session, **filters) -> Path:
             doc.creator.full_name if doc.creator else "",
             doc.owner.full_name if doc.owner else "",
             doc.department or "",
+            doc.sender_department or "",
+            doc.receiver_department or "",
             _status_label(doc.status),
             doc.created_at.strftime("%d/%m/%Y") if doc.created_at else "",
             doc.updated_at.strftime("%d/%m/%Y %H:%M") if doc.updated_at else "",
@@ -103,8 +107,8 @@ def export_documents_excel(db: Session, **filters) -> Path:
             cell.font = normal_font
             cell.alignment = Alignment(vertical="top", wrap_text=True)
 
-    ws.auto_filter.ref = f"A{header_row}:O{header_row + len(documents)}"
-    widths = [8, 16, 18, 36, 22, 22, 22, 22, 24, 16, 20, 22, 36, 18, 36]
+    ws.auto_filter.ref = f"A{header_row}:Q{header_row + len(documents)}"
+    widths = [8, 16, 18, 36, 22, 22, 22, 20, 22, 22, 24, 16, 20, 22, 36, 18, 36]
     for col, width in enumerate(widths, start=1):
         ws.column_dimensions[get_column_letter(col)].width = width
 
