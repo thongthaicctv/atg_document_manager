@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% set is_edit = mode == "edit" %}
+{% block title %}{{ "Sửa tài khoản" if is_edit else "Tạo tài khoản" }} - {{ app_name }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1 class="h4 fw-bold mb-1">{{ "Sửa tài khoản" if is_edit else "Tạo tài khoản" }}</h1>
+    <p class="text-muted mb-0">Root có thể tạo root/admin/user, admin chỉ tạo user.</p>
+  </div>
+  <a href="/users" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Danh sách</a>
+</div>
+
+<form method="post" action="{{ '/users/' ~ user.id ~ '/edit' if is_edit else '/users/new' }}" class="surface form-surface">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <div class="row g-3">
+    {% if not is_edit %}
+    <div class="col-12 col-md-4">
+      <label class="form-label" for="username">Tên đăng nhập</label>
+      <input class="form-control" id="username" name="username" required>
+    </div>
+    {% endif %}
+    <div class="col-12 col-md-4">
+      <label class="form-label" for="password">Mật khẩu {{ "mới" if is_edit else "" }}</label>
+      <input class="form-control" id="password" name="password" type="password" {% if not is_edit %}required{% endif %}>
+    </div>
+    <div class="col-12 col-md-4">
+      <label class="form-label" for="role">Role</label>
+      <select class="form-select" id="role" name="role">
+        {% for key, label in user_roles.items() %}
+          {% if current_user.role == "root" or key == "user" %}
+          <option value="{{ key }}" {% if user and user.role == key %}selected{% endif %}>{{ label }}</option>
+          {% endif %}
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-12 col-md-6">
+      <label class="form-label" for="full_name">Họ tên</label>
+      <input class="form-control" id="full_name" name="full_name" value="{{ user.full_name if user else '' }}" required>
+    </div>
+    <div class="col-12 col-md-6">
+      <label class="form-label" for="department">Đơn vị</label>
+      <input class="form-control" id="department" name="department" value="{{ user.department if user else '' }}">
+    </div>
+    <div class="col-12 col-md-6">
+      <label class="form-label" for="phone">Điện thoại</label>
+      <input class="form-control" id="phone" name="phone" value="{{ user.phone if user else '' }}">
+    </div>
+    <div class="col-12 col-md-6">
+      <label class="form-label" for="email">Email</label>
+      <input class="form-control" id="email" name="email" type="email" value="{{ user.email if user else '' }}">
+    </div>
+  </div>
+  <div class="action-row">
+    <button class="btn btn-primary" type="submit"><i class="bi bi-save"></i> Lưu</button>
+    <a class="btn btn-outline-secondary" href="/users"><i class="bi bi-x-circle"></i> Hủy</a>
+  </div>
+</form>
+{% endblock %}
+

@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}Danh sách văn bản - {{ app_name }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1 class="h4 fw-bold mb-1">Danh sách văn bản</h1>
+    <p class="text-muted mb-0">Tìm kiếm, lọc và theo dõi trạng thái thực tế của văn bản.</p>
+  </div>
+  <a href="/documents/new" class="btn btn-primary"><i class="bi bi-file-earmark-plus"></i> Tạo văn bản</a>
+</div>
+
+<section class="filter-band mb-3">
+  <form method="get" action="/documents" class="row g-2 align-items-end">
+    <div class="col-12 col-lg-3">
+      <label class="form-label" for="quick">Tìm kiếm nhanh</label>
+      <input class="form-control" id="quick" name="quick" value="{{ filters.get('quick', '') }}" placeholder="Số, tiêu đề, trích yếu, đơn vị">
+    </div>
+    <div class="col-6 col-lg-2">
+      <label class="form-label" for="from_date">Từ ngày</label>
+      <input class="form-control" id="from_date" name="from_date" type="date" value="{{ filters.get('from_date', '') }}">
+    </div>
+    <div class="col-6 col-lg-2">
+      <label class="form-label" for="to_date">Đến ngày</label>
+      <input class="form-control" id="to_date" name="to_date" type="date" value="{{ filters.get('to_date', '') }}">
+    </div>
+    <div class="col-6 col-lg-2">
+      <label class="form-label" for="document_number">Số/ký hiệu</label>
+      <input class="form-control" id="document_number" name="document_number" value="{{ filters.get('document_number', '') }}">
+    </div>
+    <div class="col-6 col-lg-3">
+      <label class="form-label" for="title">Tiêu đề</label>
+      <input class="form-control" id="title" name="title" value="{{ filters.get('title', '') }}">
+    </div>
+    <div class="col-6 col-lg-2">
+      <label class="form-label" for="proposer_name">Người đề xuất</label>
+      <input class="form-control" id="proposer_name" name="proposer_name" value="{{ filters.get('proposer_name', '') }}">
+    </div>
+    <div class="col-6 col-lg-2">
+      <label class="form-label" for="created_by_name">Người tạo</label>
+      <input class="form-control" id="created_by_name" name="created_by_name" value="{{ filters.get('created_by_name', '') }}">
+    </div>
+    <div class="col-6 col-lg-2">
+      <label class="form-label" for="department">Đơn vị</label>
+      <input class="form-control" id="department" name="department" value="{{ filters.get('department', '') }}">
+    </div>
+    <div class="col-6 col-lg-2">
+      <label class="form-label" for="status">Trạng thái</label>
+      <select class="form-select" id="status" name="status">
+        <option value="">Tất cả</option>
+        {% for key, label in document_statuses.items() %}
+        <option value="{{ key }}" {% if filters.get('status') == key %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-6 col-lg-2">
+      <label class="form-label" for="document_type">Loại văn bản</label>
+      <input class="form-control" id="document_type" name="document_type" value="{{ filters.get('document_type', '') }}">
+    </div>
+    <div class="col-6 col-lg-2 d-grid">
+      <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i> Lọc</button>
+    </div>
+    <div class="col-6 col-lg-2 d-grid">
+      <a class="btn btn-outline-secondary" href="/documents"><i class="bi bi-x-circle"></i> Xóa lọc</a>
+    </div>
+  </form>
+</section>
+
+<section class="table-responsive surface">
+  <table class="table table-hover align-middle mb-0">
+    <thead>
+      <tr>
+        <th>Số văn bản</th>
+        <th>Tiêu đề</th>
+        <th>Người đề xuất</th>
+        <th>Đơn vị</th>
+        <th>Trạng thái</th>
+        <th>Ngày cập nhật</th>
+        <th class="text-end">Thao tác</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for document in documents %}
+      <tr>
+        <td>
+          <div class="fw-semibold">{{ document.document_code or "-" }}</div>
+          <div class="small text-muted">{{ document.document_number or "" }}</div>
+        </td>
+        <td>
+          <a class="fw-semibold text-decoration-none" href="/documents/{{ document.id }}">{{ document.title }}</a>
+          <div class="small text-muted">{{ document.document_type or "Chưa phân loại" }} · {{ document.priority|priority_label }}</div>
+        </td>
+        <td>{{ document.proposer_name or "-" }}</td>
+        <td>{{ document.department or "-" }}</td>
+        <td><span class="badge {{ document.status|status_class }}">{{ document.status|status_label }}</span></td>
+        <td>{{ document.updated_at.strftime("%d/%m/%Y %H:%M") if document.updated_at else "" }}</td>
+        <td class="text-end">
+          <a class="btn btn-sm btn-outline-primary" href="/documents/{{ document.id }}" title="Xem chi tiết"><i class="bi bi-eye"></i></a>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" class="text-center text-muted py-4">Chưa có văn bản phù hợp.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}
+

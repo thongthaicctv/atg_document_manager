@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - {{ app_name }}{% endblock %}
+{% block content %}
+{% if default_root_password %}
+<div class="alert alert-warning d-flex align-items-center gap-2">
+  <i class="bi bi-exclamation-triangle"></i>
+  <div>Tài khoản root đang dùng mật khẩu mặc định. Vui lòng đổi mật khẩu sau khi hoàn tất cài đặt.</div>
+</div>
+{% endif %}
+
+<div class="page-head">
+  <div>
+    <h1 class="h4 fw-bold mb-1">Dashboard</h1>
+    <p class="text-muted mb-0">Thống kê nhanh tình hình xử lý văn bản.</p>
+  </div>
+  <a href="/documents/new" class="btn btn-primary"><i class="bi bi-file-earmark-plus"></i> Tạo văn bản</a>
+</div>
+
+<div class="stats-grid">
+  <a class="stat-tile" href="/documents">
+    <span class="stat-label">Tổng văn bản</span>
+    <strong>{{ counts.total }}</strong>
+  </a>
+  {% for key, label in document_statuses.items() %}
+  <a class="stat-tile" href="/documents?status={{ key }}">
+    <span class="stat-label">{{ label }}</span>
+    <strong>{{ counts.get(key, 0) }}</strong>
+  </a>
+  {% endfor %}
+</div>
+{% endblock %}
+

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Báo cáo - {{ app_name }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1 class="h4 fw-bold mb-1">Báo cáo</h1>
+    <p class="text-muted mb-0">Xuất Excel theo thời gian, trạng thái, người tạo, chủ văn bản và đơn vị.</p>
+  </div>
+</div>
+
+<section class="filter-band">
+  <form method="get" action="/reports/export" class="row g-2 align-items-end">
+    <div class="col-6 col-lg-2">
+      <label class="form-label" for="from_date">Từ ngày</label>
+      <input class="form-control" id="from_date" name="from_date" type="date">
+    </div>
+    <div class="col-6 col-lg-2">
+      <label class="form-label" for="to_date">Đến ngày</label>
+      <input class="form-control" id="to_date" name="to_date" type="date">
+    </div>
+    <div class="col-12 col-lg-2">
+      <label class="form-label" for="status">Trạng thái</label>
+      <select class="form-select" id="status" name="status">
+        <option value="">Tất cả</option>
+        {% for key, label in document_statuses.items() %}
+        <option value="{{ key }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-12 col-lg-2">
+      <label class="form-label" for="created_by_name">Người tạo</label>
+      <input class="form-control" id="created_by_name" name="created_by_name">
+    </div>
+    <div class="col-12 col-lg-2">
+      <label class="form-label" for="owner_name">Chủ văn bản</label>
+      <input class="form-control" id="owner_name" name="owner_name">
+    </div>
+    <div class="col-12 col-lg-2">
+      <label class="form-label" for="proposer_name">Người đề xuất</label>
+      <input class="form-control" id="proposer_name" name="proposer_name">
+    </div>
+    <div class="col-12 col-lg-2">
+      <label class="form-label" for="department">Đơn vị</label>
+      <input class="form-control" id="department" name="department">
+    </div>
+    <div class="col-12 col-lg-2">
+      <label class="form-label" for="document_type">Loại văn bản</label>
+      <input class="form-control" id="document_type" name="document_type">
+    </div>
+    <div class="col-12 col-lg-2 d-grid">
+      <button class="btn btn-success" type="submit"><i class="bi bi-file-earmark-excel"></i> Xuất Excel</button>
+    </div>
+  </form>
+</section>
+{% endblock %}
+

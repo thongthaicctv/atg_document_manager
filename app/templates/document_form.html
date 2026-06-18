@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% set is_edit = mode == "edit" %}
+{% block title %}{{ "Sửa văn bản" if is_edit else "Tạo văn bản" }} - {{ app_name }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1 class="h4 fw-bold mb-1">{{ "Sửa văn bản" if is_edit else "Tạo văn bản đề xuất" }}</h1>
+    <p class="text-muted mb-0">Thông tin nghiệp vụ và file đính kèm của văn bản.</p>
+  </div>
+  {% if is_edit %}
+  <a href="/documents/{{ document.id }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Quay lại</a>
+  {% else %}
+  <a href="/documents" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Danh sách</a>
+  {% endif %}
+</div>
+
+<form method="post" enctype="multipart/form-data" class="surface form-surface" action="{{ '/documents/' ~ document.id ~ '/edit' if is_edit else '/documents/new' }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <div class="row g-3">
+    <div class="col-12 col-md-3">
+      <label class="form-label" for="document_code">Số văn bản</label>
+      <input class="form-control" id="document_code" name="document_code" value="{{ document.document_code if document else '' }}">
+    </div>
+    <div class="col-12 col-md-3">
+      <label class="form-label" for="document_number">Số/ký hiệu</label>
+      <input class="form-control" id="document_number" name="document_number" value="{{ document.document_number if document else '' }}">
+    </div>
+    <div class="col-12 col-md-3">
+      <label class="form-label" for="document_type">Loại văn bản</label>
+      <input class="form-control" id="document_type" name="document_type" value="{{ document.document_type if document else '' }}">
+    </div>
+    <div class="col-12 col-md-3">
+      <label class="form-label" for="priority">Mức độ ưu tiên</label>
+      <select class="form-select" id="priority" name="priority">
+        {% for key, label in document_priorities.items() %}
+        <option value="{{ key }}" {% if document and document.priority == key %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-12">
+      <label class="form-label" for="title">Tiêu đề</label>
+      <input class="form-control" id="title" name="title" value="{{ document.title if document else '' }}" required>
+    </div>
+    <div class="col-12 col-lg-6">
+      <label class="form-label" for="summary">Trích yếu</label>
+      <textarea class="form-control" id="summary" name="summary" rows="4">{{ document.summary if document else '' }}</textarea>
+    </div>
+    <div class="col-12 col-lg-6">
+      <label class="form-label" for="content">Nội dung</label>
+      <textarea class="form-control" id="content" name="content" rows="4">{{ document.content if document else '' }}</textarea>
+    </div>
+    <div class="col-12 col-md-4">
+      <label class="form-label" for="proposer_name">Người đề xuất</label>
+      <input class="form-control" id="proposer_name" name="proposer_name" value="{{ document.proposer_name if document else current_user.full_name }}">
+    </div>
+    <div class="col-12 col-md-4">
+      <label class="form-label" for="department">Đơn vị</label>
+      <input class="form-control" id="department" name="department" value="{{ document.department if document else current_user.department or '' }}">
+    </div>
+    <div class="col-12 col-md-4">
+      <label class="form-label" for="note">Ghi chú</label>
+      <input class="form-control" id="note" name="note" value="{{ document.note if document else '' }}">
+    </div>
+    {% if not is_edit %}
+    <div class="col-12">
+      <label class="form-label" for="files">File đính kèm</label>
+      <input class="form-control" id="files" name="files" type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx">
+    </div>
+    {% endif %}
+  </div>
+  <div class="action-row">
+    <button class="btn btn-primary" type="submit"><i class="bi bi-save"></i> Lưu</button>
+    <a class="btn btn-outline-secondary" href="{{ '/documents/' ~ document.id if is_edit else '/documents' }}"><i class="bi bi-x-circle"></i> Hủy</a>
+  </div>
+</form>
+{% endblock %}

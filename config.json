@@ -1,0 +1,22 @@
+{
+  "app_name": "ATG Document Manager",
+  "host": "0.0.0.0",
+  "port": 8088,
+  "database": {
+    "host": "127.0.0.1",
+    "port": 3306,
+    "user": "atg_doc_user",
+    "password": "atg_password",
+    "database": "atg_document_system"
+  },
+  "storage": {
+    "upload_dir": "D:/ATG_DOCUMENT/uploads",
+    "max_file_size_mb": 50,
+    "allowed_extensions": ["pdf", "jpg", "jpeg", "png", "doc", "docx", "xls", "xlsx"]
+  },
+  "security": {
+    "session_timeout_minutes": 60,
+    "password_min_length": 6,
+    "secret_key": "change-this-secret-key-before-production"
+  }
+}

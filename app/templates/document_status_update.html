@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Cập nhật trạng thái - {{ app_name }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1 class="h4 fw-bold mb-1">Cập nhật trạng thái</h1>
+    <p class="text-muted mb-0">{{ document.title }}</p>
+  </div>
+  <a href="/documents/{{ document.id }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Quay lại</a>
+</div>
+
+<form method="post" enctype="multipart/form-data" action="/documents/{{ document.id }}/status" class="surface form-surface">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <div class="row g-3">
+    <div class="col-12 col-md-4">
+      <label class="form-label" for="new_status">Trạng thái mới</label>
+      <select class="form-select" id="new_status" name="new_status" required>
+        {% for key, label in document_statuses.items() %}
+        <option value="{{ key }}" {% if document.status == key %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-12 col-md-4">
+      <label class="form-label" for="leader_name">Tên lãnh đạo/người cho ý kiến</label>
+      <input class="form-control" id="leader_name" name="leader_name" value="{{ document.leader_name or '' }}">
+    </div>
+    <div class="col-12 col-md-4">
+      <label class="form-label" for="actual_date">Ngày thực tế</label>
+      <input class="form-control" id="actual_date" name="actual_date" type="date">
+    </div>
+    <div class="col-12">
+      <label class="form-label" for="note">Ghi chú xử lý</label>
+      <textarea class="form-control" id="note" name="note" rows="4"></textarea>
+    </div>
+    {% if permissions.can_upload_file %}
+    <div class="col-12">
+      <label class="form-label" for="file">File bổ sung</label>
+      <input class="form-control" id="file" name="file" type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx">
+    </div>
+    {% endif %}
+  </div>
+  <div class="action-row">
+    <button class="btn btn-success" type="submit"><i class="bi bi-check2-circle"></i> Cập nhật</button>
+    <a class="btn btn-outline-secondary" href="/documents/{{ document.id }}"><i class="bi bi-x-circle"></i> Hủy</a>
+  </div>
+</form>
+{% endblock %}

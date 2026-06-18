@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% block title %}{{ document.title }} - {{ app_name }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1 class="h4 fw-bold mb-1">{{ document.title }}</h1>
+    <div class="d-flex flex-wrap gap-2">
+      <span class="badge {{ document.status|status_class }}">{{ document.status|status_label }}</span>
+      <span class="badge text-bg-light border">{{ document.priority|priority_label }}</span>
+      <span class="text-muted small">Cập nhật {{ document.updated_at.strftime("%d/%m/%Y %H:%M") if document.updated_at else "" }}</span>
+    </div>
+  </div>
+  <div class="btn-toolbar gap-2">
+    <a class="btn btn-outline-secondary" href="/documents"><i class="bi bi-arrow-left"></i> Danh sách</a>
+    {% if permissions.can_edit %}
+    <a class="btn btn-primary" href="/documents/{{ document.id }}/edit"><i class="bi bi-pencil-square"></i> Sửa</a>
+    {% endif %}
+    {% if permissions.can_update_status %}
+    <a class="btn btn-success" href="/documents/{{ document.id }}/status"><i class="bi bi-arrow-repeat"></i> Trạng thái</a>
+    {% endif %}
+    {% if permissions.can_share %}
+    <a class="btn btn-outline-primary" href="/documents/{{ document.id }}/permissions"><i class="bi bi-person-check"></i> Phân quyền</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-12 col-xl-8">
+    <section class="surface mb-3">
+      <h2 class="section-title">Thông tin văn bản</h2>
+      <dl class="detail-grid">
+        <div><dt>Số văn bản</dt><dd>{{ document.document_code or "-" }}</dd></div>
+        <div><dt>Số/ký hiệu</dt><dd>{{ document.document_number or "-" }}</dd></div>
+        <div><dt>Loại văn bản</dt><dd>{{ document.document_type or "-" }}</dd></div>
+        <div><dt>Người đề xuất</dt><dd>{{ document.proposer_name or "-" }}</dd></div>
+        <div><dt>Đơn vị</dt><dd>{{ document.department or "-" }}</dd></div>
+        <div><dt>Chủ văn bản</dt><dd>{{ document.owner.full_name if document.owner else "-" }}</dd></div>
+        <div><dt>Người tạo</dt><dd>{{ document.creator.full_name if document.creator else "-" }}</dd></div>
+        <div><dt>Lãnh đạo/người cho ý kiến</dt><dd>{{ document.leader_name or "-" }}</dd></div>
+      </dl>
+      <div class="mt-3">
+        <h3 class="h6 fw-bold">Trích yếu</h3>
+        <p class="preserve-lines">{{ document.summary or "Chưa có trích yếu." }}</p>
+      </div>
+      <div class="mt-3">
+        <h3 class="h6 fw-bold">Nội dung</h3>
+        <p class="preserve-lines">{{ document.content or "Chưa có nội dung." }}</p>
+      </div>
+      {% if document.note %}
+      <div class="note-box mt-3">{{ document.note }}</div>
+      {% endif %}
+    </section>
+
+    <section class="surface mb-3">
+      <h2 class="section-title">File đính kèm</h2>
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Tên file</th>
+              <th>Loại</th>
+              <th>Dung lượng</th>
+              <th>Người upload</th>
+              <th>Thời gian</th>
+              <th class="text-end">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for file in document.files %}
+            <tr>
+              <td>
+                <a href="/files/{{ file.id }}/download" class="text-decoration-none fw-semibold">{{ file.original_name }}</a>
+                {% if file.is_scanned %}<span class="badge text-bg-info ms-1">Scan PDF</span>{% endif %}
+              </td>
+              <td>{{ file.file_type }}</td>
+              <td>{{ (file.file_size / 1024)|round(1) }} KB</td>
+              <td>{{ file.uploader.full_name if file.uploader else "-" }}</td>
+              <td>{{ file.uploaded_at.strftime("%d/%m/%Y %H:%M") if file.uploaded_at else "" }}</td>
+              <td class="text-end">
+                <a class="btn btn-sm btn-outline-primary" href="/files/{{ file.id }}/download" title="Tải xuống"><i class="bi bi-download"></i></a>
+                {% if permissions.can_upload_file %}
+                <form method="post" action="/files/{{ file.id }}/delete" class="d-inline" data-confirm="Xóa file này?">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                  <button class="btn btn-sm btn-outline-danger" type="submit" title="Xóa file"><i class="bi bi-trash"></i></button>
+                </form>
+                {% endif %}
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" class="text-center text-muted py-3">Chưa có file đính kèm.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    {% if permissions.can_upload_file %}
+    <section class="surface mb-3">
+      <h2 class="section-title">Upload và scan tài liệu</h2>
+      <div class="row g-3">
+        <div class="col-12 col-lg-6">
+          <form method="post" action="/documents/{{ document.id }}/files" enctype="multipart/form-data" class="upload-box">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <label class="form-label" for="files">Upload file</label>
+            <input class="form-control" id="files" name="files" type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx">
+            <button class="btn btn-primary mt-3" type="submit"><i class="bi bi-upload"></i> Upload</button>
+          </form>
+        </div>
+        <div class="col-12 col-lg-6">
+          <form method="post" action="/documents/{{ document.id }}/scan-pdf" enctype="multipart/form-data" class="upload-box">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <label class="form-label" for="scan_images">Chụp ảnh/scan thành PDF</label>
+            <input class="form-control" id="scan_images" name="scan_images" type="file" accept="image/*" capture="environment" multiple>
+            <button class="btn btn-success mt-3" type="submit"><i class="bi bi-camera"></i> Ghép PDF</button>
+          </form>
+        </div>
+      </div>
+    </section>
+    {% endif %}
+  </div>
+
+  <div class="col-12 col-xl-4">
+    <section class="surface mb-3">
+      <h2 class="section-title">Mốc xử lý</h2>
+      <dl class="milestone-list">
+        <div><dt>Trình lãnh đạo</dt><dd>{{ document.submitted_to_leader_at.strftime("%d/%m/%Y") if document.submitted_to_leader_at else "-" }}</dd></div>
+        <div><dt>Lãnh đạo duyệt</dt><dd>{{ document.approved_at.strftime("%d/%m/%Y") if document.approved_at else "-" }}</dd></div>
+        <div><dt>Ban hành</dt><dd>{{ document.issued_at.strftime("%d/%m/%Y") if document.issued_at else "-" }}</dd></div>
+        <div><dt>Lưu hồ sơ</dt><dd>{{ document.archived_at.strftime("%d/%m/%Y") if document.archived_at else "-" }}</dd></div>
+      </dl>
+    </section>
+
+    <section class="surface mb-3">
+      <h2 class="section-title">Phân quyền xử lý</h2>
+      <div class="vstack gap-2">
+        {% for permission in document.permissions %}
+        <div class="permission-chip">
+          <strong>{{ permission.user.full_name if permission.user else "User" }}</strong>
+          <span>
+            {% if permission.can_edit %}Sửa{% endif %}
+            {% if permission.can_update_status %} · Trạng thái{% endif %}
+            {% if permission.can_upload_file %} · Upload{% endif %}
+            {% if permission.can_share %} · Phân quyền{% endif %}
+          </span>
+        </div>
+        {% else %}
+        <div class="text-muted">Chưa phân quyền thêm cho người dùng khác.</div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="surface">
+      <h2 class="section-title">Timeline lịch sử</h2>
+      <div class="timeline">
+        {% for log in document.logs %}
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-body">
+            <div class="fw-semibold">{{ log.action|action_label }}</div>
+            <div class="small text-muted">
+              {{ log.performed_at.strftime("%d/%m/%Y %H:%M") if log.performed_at else "" }}
+              · {{ log.performer.full_name if log.performer else "Hệ thống" }}
+            </div>
+            {% if log.old_status or log.new_status %}
+            <div class="small">{{ log.old_status|status_label }} → {{ log.new_status|status_label }}</div>
+            {% endif %}
+            {% if log.note %}<div class="small preserve-lines">{{ log.note }}</div>{% endif %}
+          </div>
+        </div>
+        {% else %}
+        <div class="text-muted">Chưa có lịch sử thao tác.</div>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}
+
