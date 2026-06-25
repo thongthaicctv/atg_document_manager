@@ -7,6 +7,16 @@
       <h1 class="h3 fw-bold mb-1">{{ app_name }}</h1>
       <p class="text-muted mb-0">Quản lý văn bản, công văn và đề xuất nội bộ</p>
     </div>
+    {% if initialized %}
+    <div class="alert alert-success">
+      Đã khởi tạo database. Vui lòng đăng nhập lại bằng tài khoản root vừa được tạo.
+    </div>
+    {% endif %}
+    {% if restored %}
+    <div class="alert alert-success">
+      Đã phục hồi dữ liệu từ backup SQL. Vui lòng đăng nhập lại bằng tài khoản trong dữ liệu đã phục hồi.
+    </div>
+    {% endif %}
     {% if error %}
     <div class="alert alert-danger">{{ error }}</div>
     {% endif %}
@@ -25,4 +35,3 @@
   </section>
 </div>
 {% endblock %}
-

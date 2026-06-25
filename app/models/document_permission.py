@@ -4,6 +4,7 @@ from sqlalchemy import Boolean, DateTime, ForeignKey, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
+from app.timezone import utc_now
 
 
 class DocumentPermission(Base):
@@ -19,10 +20,9 @@ class DocumentPermission(Base):
     can_upload_file: Mapped[bool] = mapped_column(Boolean, default=False)
     can_share: Mapped[bool] = mapped_column(Boolean, default=False)
     granted_by: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
-    granted_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    granted_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
     note: Mapped[str | None] = mapped_column(Text)
 
     document = relationship("Document", back_populates="permissions")
     user = relationship("User", foreign_keys=[user_id])
     grantor = relationship("User", foreign_keys=[granted_by])
-

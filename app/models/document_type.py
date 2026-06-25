@@ -4,6 +4,7 @@ from sqlalchemy import Boolean, DateTime, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
+from app.timezone import utc_now
 
 
 class DocumentType(Base):
@@ -14,4 +15,4 @@ class DocumentType(Base):
     code: Mapped[str | None] = mapped_column(String(80), unique=True)
     branch: Mapped[str] = mapped_column(String(20), nullable=False, default="outgoing", index=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)

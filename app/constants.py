@@ -9,6 +9,11 @@ DOCUMENT_STATUSES = {
     "cancelled": "Không tiếp tục thực hiện",
 }
 
+INCOMING_DOCUMENT_STATUSES = {
+    "new_received": "Mới nhận",
+    "received": "Đã nhận",
+}
+
 STATUS_BADGE_CLASSES = {
     "new_draft": "text-bg-secondary",
     "submitted_to_leader": "text-bg-primary",
@@ -20,10 +25,23 @@ STATUS_BADGE_CLASSES = {
     "cancelled": "text-bg-danger",
 }
 
+INCOMING_STATUS_BADGE_CLASSES = {
+    "new_received": "text-bg-info",
+    "received": "text-bg-secondary",
+}
+
 DOCUMENT_PRIORITIES = {
     "normal": "Bình thường",
     "urgent": "Khẩn",
     "very_urgent": "Rất khẩn",
+}
+
+INCOMING_ACTIONS = {
+    "archive": "Lưu hồ sơ",
+    "need_reply": "Cần phúc đáp",
+    "need_proposal": "Cần làm đề xuất",
+    "need_report": "Cần làm báo cáo",
+    "other": "Khác",
 }
 
 USER_ROLES = {
@@ -50,4 +68,3 @@ LOG_ACTIONS = {
     "login": "Đăng nhập",
     "logout": "Đăng xuất",
 }
-

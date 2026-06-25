@@ -35,7 +35,7 @@
         </td>
         <td><span class="badge text-bg-light border">{{ account.role|role_label }}</span></td>
         <td>{{ account.status|user_status_label }}</td>
-        <td>{{ account.last_login.strftime("%d/%m/%Y %H:%M") if account.last_login else "-" }}</td>
+        <td>{{ account.last_login|local_datetime if account.last_login else "-" }}</td>
         <td class="text-end">
           <a class="btn btn-sm btn-outline-primary" href="/users/{{ account.id }}/edit" title="Sửa">
             <i class="bi bi-pencil-square"></i>

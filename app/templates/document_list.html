@@ -1,18 +1,22 @@
 {% extends "base.html" %}
-{% block title %}Danh sách văn bản - {{ app_name }}{% endblock %}
+{% block title %}{{ page_title }} - {{ app_name }}{% endblock %}
 {% block content %}
 <div class="page-head">
   <div>
-    <h1 class="h4 fw-bold mb-1">{{ "Văn bản nhận về" if filters.get('received') == '1' else "Danh sách văn bản" }}</h1>
+    <h1 class="h4 fw-bold mb-1">{{ page_title }}</h1>
     <p class="text-muted mb-0">Tìm kiếm, lọc và theo dõi trạng thái thực tế của văn bản.</p>
   </div>
-  <a href="{{ '/documents/new?branch=incoming' if filters.get('received') == '1' else '/documents/new?branch=outgoing' }}" class="btn btn-primary"><i class="bi bi-file-earmark-plus"></i> {{ "Tạo văn bản nhận về" if filters.get('received') == '1' else "Văn bản đề xuất đi" }}</a>
+  {% if show_create_button %}
+  <a href="{{ create_url }}" class="btn btn-primary"><i class="bi bi-file-earmark-plus"></i> {{ create_label }}</a>
+  {% endif %}
 </div>
 
 <section class="filter-band mb-3">
   <form method="get" action="/documents" class="row g-2 align-items-end">
     {% if filters.get('received') == '1' %}
     <input type="hidden" name="received" value="1">
+    {% elif list_branch == "outgoing" %}
+    <input type="hidden" name="branch" value="outgoing">
     {% endif %}
     <div class="col-12 col-lg-3">
       <label class="form-label" for="quick">Tìm kiếm nhanh</label>
@@ -26,10 +30,12 @@
       <label class="form-label" for="to_date">Đến ngày</label>
       <input class="form-control" id="to_date" name="to_date" type="date" value="{{ filters.get('to_date', '') }}">
     </div>
+    {% if list_branch != "outgoing" %}
     <div class="col-6 col-lg-2">
       <label class="form-label" for="document_number">Số/ký hiệu</label>
       <input class="form-control" id="document_number" name="document_number" value="{{ filters.get('document_number', '') }}">
     </div>
+    {% endif %}
     <div class="col-6 col-lg-3">
       <label class="form-label" for="title">Tiêu đề</label>
       <input class="form-control" id="title" name="title" value="{{ filters.get('title', '') }}">
@@ -68,7 +74,8 @@
       <label class="form-label" for="status">Trạng thái</label>
       <select class="form-select" id="status" name="status">
         <option value="">Tất cả</option>
-        {% for key, label in document_statuses.items() %}
+        {% set status_options = incoming_status_options if list_branch == "incoming" else document_statuses %}
+        {% for key, label in status_options.items() %}
         <option value="{{ key }}" {% if filters.get('status') == key %}selected{% endif %}>{{ label }}</option>
         {% endfor %}
       </select>
@@ -86,7 +93,7 @@
       <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i> Lọc</button>
     </div>
     <div class="col-6 col-lg-2 d-grid">
-      <a class="btn btn-outline-secondary" href="{{ '/documents?received=1' if filters.get('received') == '1' else '/documents' }}"><i class="bi bi-x-circle"></i> Xóa lọc</a>
+      <a class="btn btn-outline-secondary" href="{{ reset_url }}"><i class="bi bi-x-circle"></i> Xóa lọc</a>
     </div>
   </form>
 </section>
@@ -97,6 +104,12 @@
       <tr>
         <th>Số thứ tự</th>
         <th>Tiêu đề</th>
+        {% if show_incoming_action_column %}
+        <th>Hướng xử lý</th>
+        {% endif %}
+        {% if show_source_document_column %}
+        <th>VB nhận liên quan</th>
+        {% endif %}
         <th>Người nhận/đề xuất</th>
         {% if show_sender_department %}
         <th>Đơn vị gửi đến</th>
@@ -116,12 +129,27 @@
       <tr>
         <td>
           <div class="fw-semibold">{{ document.document_code or "-" }}</div>
+          {% if row_branch == "incoming" %}
           <div class="small text-muted">{{ document.document_number or "" }}</div>
+          {% endif %}
         </td>
         <td>
           <a class="fw-semibold text-decoration-none" href="/documents/{{ document.id }}">{{ document.title }}</a>
           <div class="small text-muted">{{ document.document_type or "Chưa phân loại" }} · {{ document.priority|priority_label }}</div>
         </td>
+        {% if show_incoming_action_column %}
+        <td>{{ document.incoming_action|incoming_action_label }}</td>
+        {% endif %}
+        {% if show_source_document_column %}
+        <td>
+          {% if document.source_document %}
+          <a href="/documents/{{ document.source_document.id }}" class="text-decoration-none fw-semibold">{{ document.source_document.document_code or document.source_document.id }}</a>
+          {% if document.source_document.document_number %}<div class="small text-muted">{{ document.source_document.document_number }}</div>{% endif %}
+          {% else %}
+          Khác
+          {% endif %}
+        </td>
+        {% endif %}
         <td>{{ document.proposer_name or "-" }}</td>
         {% if show_sender_department %}
         <td>{{ document.sender_department or "-" }}</td>
@@ -129,7 +157,13 @@
         {% if show_receiver_department %}
         <td>{{ document.receiver_department or "-" }}</td>
         {% endif %}
-        <td><span class="badge {{ document.status|status_class }}">{{ document.status|status_label }}</span></td>
+        <td>
+          {% if row_branch == "incoming" %}
+          <span class="badge {{ document|incoming_status_class }}">{{ document|incoming_status_label }}</span>
+          {% else %}
+          <span class="badge {{ document.status|status_class }}">{{ document.status|status_label }}</span>
+          {% endif %}
+        </td>
         <td>
           {% if row_branch == "incoming" %}
             {{ document|received_time_label }}
@@ -137,13 +171,13 @@
             {{ document.due_date.strftime("%d/%m/%Y") if document.due_date else "-" }}
           {% endif %}
         </td>
-        <td>{{ document.updated_at.strftime("%d/%m/%Y %H:%M") if document.updated_at else "" }}</td>
+        <td>{{ document.updated_at|local_datetime }}</td>
         <td class="text-end">
           <a class="btn btn-sm btn-outline-primary" href="/documents/{{ document.id }}" title="Xem chi tiết"><i class="bi bi-eye"></i></a>
         </td>
       </tr>
       {% else %}
-      <tr><td colspan="{{ 7 + (1 if show_sender_department else 0) + (1 if show_receiver_department else 0) }}" class="text-center text-muted py-4">Chưa có văn bản phù hợp.</td></tr>
+      <tr><td colspan="{{ 7 + (1 if show_sender_department else 0) + (1 if show_receiver_department else 0) + (1 if show_incoming_action_column else 0) + (1 if show_source_document_column else 0) }}" class="text-center text-muted py-4">Chưa có văn bản phù hợp.</td></tr>
       {% endfor %}
     </tbody>
   </table>

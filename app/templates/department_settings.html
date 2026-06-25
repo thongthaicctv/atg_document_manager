@@ -40,7 +40,7 @@
                 <input class="form-control form-control-sm" name="name" value="{{ item.name }}" form="edit-department-{{ item.id }}" required>
               </td>
               <td>{{ item.code or "-" }}</td>
-              <td>{{ item.created_at.strftime("%d/%m/%Y") if item.created_at else "-" }}</td>
+              <td>{{ item.created_at|local_date }}</td>
               <td class="text-end">
                 <form id="edit-department-{{ item.id }}" method="post" action="/settings/departments/{{ item.id }}/edit" class="d-inline">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token }}">

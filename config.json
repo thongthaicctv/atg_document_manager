@@ -1,22 +1,6 @@
 {
-  "app_name": "ATG Document Manager",
-  "host": "0.0.0.0",
-  "port": 8088,
-  "database": {
-    "host": "127.0.0.1",
-    "port": 3306,
-    "user": "atg_admin",
-    "password": "atg_123456",
-    "database": "atg_document_system"
-  },
-  "storage": {
-    "upload_dir": "D:/ATG_DOCUMENT/uploads",
-    "max_file_size_mb": 50,
-    "allowed_extensions": ["pdf", "jpg", "jpeg", "png", "doc", "docx", "xls", "xlsx"]
-  },
-  "security": {
-    "session_timeout_minutes": 60,
-    "password_min_length": 6,
-    "secret_key": "change-this-secret-key-before-production"
-  }
+  "__atg_encrypted_config__": true,
+  "version": 1,
+  "provider": "windows-dpapi-local-machine",
+  "payload": "AQAAANCMnd8BFdERjHoAwE/Cl+sBAAAAHTLqeBjGa0GTlv0YlWlukAQAAAA4AAAAQQBUAEcAIABEAG8AYwB1AG0AZQBuAHQAIABNAGEAbgBhAGcAZQByACAAYwBvAG4AZgBpAGcAAAAQZgAAAAEAACAAAACRIVi220tRaWVTqxI1FQasypsX5v+HXYvOn21VX2jUnwAAAAAOgAAAAAIAACAAAACKNHM1ZE5mr6gQPIdJt1k/vq02Nhx3Ob8IZ7tuUz7cInACAAC0vF6j11pmkPtSnnIcAZLP7+QIxd2156zE9MRVoIyvSwRQVtZAeahAs3QZbtqX1EKP4SyoBQnrG0UDoD+Lifr92tUZZxJOSW4Mi9iO8dnB9b/YJT/bgjoznOY7DTX0fxueUTPbfWaDVasoH2gM38Pi1oX6XHrqMp7aB1vr0LIAwEdqP5K1Hp4UrsNXTjRToae2LXWhEOJ5bKUmxMqEVvDhGKEDCdSoZVygU6rLKtpy7nXmiEulhdwrFDtzZyfl2mF2+j0uq7ymj78Dnp6RkzmQWo+eqrGYL2YsQVNlF6xhUUC0/0YJg6UnmXI1nO3/EEvv++1ykm/e5TFtTIYylmOWcnueJWwE1x+9OnGZgzVywg7B5/6j9Z9DtE+xUa3ah3ifQkc4qAsC9cMX5dg98RyL59FXSw8Pet78gNtFlreR8y9c9h32f6y3O/Iy8m11T+XD6KpREIoQgVM+0wFe0cS7fg3aKHKC1Rqmjz4IUXkRrNxoi31TE3uiGJyNZkBf9Hr4UNlTc+55/tTfwVVca3b5NezTAl5OV7p+KQqrHMmmTlmNp/mupbsS3LlzYKRhTmGaThedfXfuRpIPrc6pUaHDzpXZEbbATyQm5MBMqn79D9WLbuVpKLJ1iv1ld9BO8cZNi0cV8gYxe1SstVOFcOBUYUv4itoeTkxjBZTjLxkqA7tywgURgFXakXWXmsZYuV2GCJDl7Eh432BDB3GESXCOTvFanYHFlTYiJ5HCovVq1CRR4Y0i3My4eQyc+LKBjdRzYdhTGOjWdOudvfT/jGaW+46r++DU7i4vSFhzg8sn3pHD469UPaXlumI954ttc0hAAAAAJz3UoJfWLLlicuW3zC+4YG4JT6zJmj7NCCs0d5MqdBqftpWmxOOeVQi5r7D35p8S5JVB8vQ3aw8wyndFKOb1qg=="
 }

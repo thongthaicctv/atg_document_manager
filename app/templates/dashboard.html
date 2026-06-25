@@ -13,7 +13,6 @@
     <h1 class="h4 fw-bold mb-1">Dashboard</h1>
     <p class="text-muted mb-0">Thống kê nhanh tình hình xử lý văn bản.</p>
   </div>
-  <a href="/documents/new?branch=outgoing" class="btn btn-primary"><i class="bi bi-file-earmark-plus"></i> Văn bản đề xuất đi</a>
 </div>
 
 <div class="stats-grid">
@@ -21,12 +20,42 @@
     <span class="stat-label">Tổng văn bản</span>
     <strong>{{ counts.total }}</strong>
   </a>
-  {% for key, label in document_statuses.items() %}
-  <a class="stat-tile" href="/documents?status={{ key }}">
-    <span class="stat-label">{{ label }}</span>
-    <strong>{{ counts.get(key, 0) }}</strong>
+  <a class="stat-tile" href="/documents?received=1&incoming_pending=1">
+    <span class="stat-label">Tổng văn bản cần xử lý</span>
+    <strong>{{ counts.pending_incoming_total }}</strong>
   </a>
-  {% endfor %}
+  <a class="stat-tile" href="/documents?branch=outgoing&from_date={{ today_date }}&to_date={{ today_date }}">
+    <span class="stat-label">Văn bản mới tạo</span>
+    <strong>{{ counts.new_draft }}</strong>
+  </a>
+  <a class="stat-tile" href="/documents?branch=outgoing&status=submitted_to_leader">
+    <span class="stat-label">Đã trình lãnh đạo</span>
+    <strong>{{ counts.submitted_to_leader }}</strong>
+  </a>
+  <a class="stat-tile" href="/documents?branch=outgoing&status=need_revision">
+    <span class="stat-label">Yêu cầu chỉnh sửa</span>
+    <strong>{{ counts.need_revision }}</strong>
+  </a>
+  <a class="stat-tile" href="/documents?branch=outgoing&status=revised">
+    <span class="stat-label">Đã chỉnh sửa bổ sung</span>
+    <strong>{{ counts.revised }}</strong>
+  </a>
+  <a class="stat-tile" href="/documents?branch=outgoing&status=leader_approved">
+    <span class="stat-label">Lãnh đạo đã duyệt</span>
+    <strong>{{ counts.leader_approved }}</strong>
+  </a>
+  <a class="stat-tile" href="/documents?branch=outgoing&status=issued">
+    <span class="stat-label">Đã ban hành / đã phát hành</span>
+    <strong>{{ counts.issued }}</strong>
+  </a>
+  <a class="stat-tile" href="/documents?branch=outgoing&status=archived">
+    <span class="stat-label">Đã lưu hồ sơ</span>
+    <strong>{{ counts.archived }}</strong>
+  </a>
+  <a class="stat-tile" href="/documents?branch=outgoing&status=cancelled">
+    <span class="stat-label">Không tiếp tục thực hiện</span>
+    <strong>{{ counts.cancelled }}</strong>
+  </a>
 </div>
 
 {% endblock %}

@@ -10,9 +10,36 @@ from app.models import Department, DocumentType, User
 from app.security import hash_password
 
 
-def ensure_database() -> None:
-    with engine.connect() as conn:
+def _mysql_error_code(exc: OperationalError) -> int | None:
+    original = getattr(exc, "orig", None)
+    args = getattr(original, "args", ())
+    if not args:
+        return None
+    try:
+        return int(args[0])
+    except (TypeError, ValueError):
+        return None
+
+
+def _is_table_exists_error(exc: OperationalError) -> bool:
+    return _mysql_error_code(exc) == 1050 or "already exists" in str(exc).lower()
+
+
+def ensure_database(target_engine=None) -> None:
+    active_engine = target_engine or engine
+    with active_engine.connect() as conn:
         conn.execute(text("SELECT 1"))
+
+
+def create_schema_tables(target_engine=None) -> None:
+    active_engine = target_engine or engine
+    for table in Base.metadata.sorted_tables:
+        try:
+            table.create(bind=active_engine, checkfirst=False)
+        except OperationalError as exc:
+            if _is_table_exists_error(exc):
+                continue
+            raise
 
 
 def seed_default_users(db: Session) -> None:
@@ -21,7 +48,7 @@ def seed_default_users(db: Session) -> None:
         db.add(
             User(
                 username="root",
-                password_hash=hash_password("admin@123"),
+                password_hash=hash_password("Nongdan80B"),
                 full_name="Root Administrator",
                 role="root",
                 status="active",
@@ -40,17 +67,14 @@ def seed_default_users(db: Session) -> None:
             )
         )
     else:
-        admin.password_hash = hash_password("atg_123456")
         admin.full_name = admin.full_name or "Administrator"
-        admin.role = "admin"
-        admin.status = "active"
 
 
 def seed_lookup_data(db: Session) -> None:
     for name, code in [
-        ("Van phong", "VAN_PHONG"),
-        ("To chuc - Hanh chinh", "TO_CHUC_HANH_CHINH"),
-        ("Tai chinh - Ke toan", "TAI_CHINH_KE_TOAN"),
+        ("Ban 1", "BAN_1"),
+        ("Ban 2", "BAN_2"),
+        ("Ban 6", "BAN_6"),
     ]:
         exists = db.query(Department).filter(or_(Department.code == code, Department.name == name)).one_or_none()
         if not exists:
@@ -60,15 +84,28 @@ def seed_lookup_data(db: Session) -> None:
             exists.is_active = True
 
     for name, code, branch in [
+        ("Công văn đến", "CONG_VAN_DEN", "incoming"),
         ("Cong van", "CONG_VAN", "outgoing"),
         ("To trinh", "TO_TRINH", "outgoing"),
         ("De xuat", "DE_XUAT", "outgoing"),
         ("Bao cao", "BAO_CAO", "outgoing"),
     ]:
-        exists = db.query(DocumentType).filter(or_(DocumentType.code == code, DocumentType.name == name)).one_or_none()
+        matches = db.query(DocumentType).filter(or_(DocumentType.code == code, DocumentType.name == name)).all()
+        exists = next((item for item in matches if item.code == code), None) or (matches[0] if matches else None)
         if not exists:
             db.add(DocumentType(name=name, code=code, branch=branch))
         else:
+            if name == "Công văn đến" and exists.name == "Cong van den":
+                vietnamese_type = (
+                    db.query(DocumentType)
+                    .filter(DocumentType.id != exists.id, DocumentType.branch == "incoming", DocumentType.name.like("%Công%Văn%Đến%"))
+                    .one_or_none()
+                )
+                if vietnamese_type:
+                    exists.is_active = False
+                    vietnamese_type.is_active = True
+                    vietnamese_type.branch = branch
+                    continue
             exists.code = exists.code or code
             exists.branch = exists.branch or branch
             exists.is_active = True
@@ -115,6 +152,10 @@ def run_migrations(db: Session) -> None:
         db.execute(text("ALTER TABLE documents ADD COLUMN sender_department VARCHAR(255) NULL, ADD INDEX ix_documents_sender_department (sender_department)"))
     if not column_exists(db, "documents", "receiver_department"):
         db.execute(text("ALTER TABLE documents ADD COLUMN receiver_department VARCHAR(255) NULL, ADD INDEX ix_documents_receiver_department (receiver_department)"))
+    if not column_exists(db, "documents", "incoming_action"):
+        db.execute(text("ALTER TABLE documents ADD COLUMN incoming_action VARCHAR(50) NULL, ADD INDEX ix_documents_incoming_action (incoming_action)"))
+    if not column_exists(db, "documents", "source_document_id"):
+        db.execute(text("ALTER TABLE documents ADD COLUMN source_document_id INT NULL, ADD INDEX ix_documents_source_document_id (source_document_id)"))
     if not column_exists(db, "documents", "reminder_dismissed_at"):
         db.execute(text("ALTER TABLE documents ADD COLUMN reminder_dismissed_at DATETIME NULL"))
     if not column_exists(db, "documents", "reminder_dismissed_by"):
@@ -138,14 +179,19 @@ def seed_defaults(db: Session) -> None:
     seed_lookup_data(db)
 
 
+def initialize_database(target_engine=None) -> None:
+    active_engine = target_engine or engine
+    ensure_database(active_engine)
+    create_schema_tables(active_engine)
+    with Session(active_engine) as db:
+        run_migrations(db)
+        seed_defaults(db)
+        db.commit()
+
+
 def main() -> None:
     try:
-        ensure_database()
-        Base.metadata.create_all(bind=engine)
-        with Session(engine) as db:
-            run_migrations(db)
-            seed_defaults(db)
-            db.commit()
+        initialize_database()
     except OperationalError as exc:
         cfg = get_config()["database"]
         print("Khong ket noi duoc MariaDB voi cau hinh hien tai.")
@@ -165,9 +211,9 @@ def main() -> None:
 
     print("Da khoi tao database va tai khoan mac dinh.")
     print("Root username: root")
-    print("Root password: admin@123")
+    print("Root password mac dinh khi tao moi: Nongdan80B")
     print("Admin username: admin")
-    print("Admin password: atg_123456")
+    print("Admin password mac dinh khi tao moi: atg_123456")
 
 
 if __name__ == "__main__":

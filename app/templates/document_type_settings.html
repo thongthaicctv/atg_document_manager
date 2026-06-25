@@ -56,7 +56,7 @@
                   {% endfor %}
                 </select>
               </td>
-              <td>{{ item.created_at.strftime("%d/%m/%Y") if item.created_at else "-" }}</td>
+              <td>{{ item.created_at|local_date }}</td>
               <td class="text-end">
                 <form id="edit-type-{{ item.id }}" method="post" action="/settings/document-types/{{ item.id }}/edit" class="d-inline">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token }}">

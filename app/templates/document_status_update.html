@@ -21,8 +21,8 @@
       </select>
     </div>
     <div class="col-12 col-md-4">
-      <label class="form-label" for="leader_name">Tên lãnh đạo/người cho ý kiến</label>
-      <input class="form-control" id="leader_name" name="leader_name" value="{{ document.leader_name or '' }}">
+      <label class="form-label" for="leader_name">Tên lãnh đạo/người cho ý kiến <span class="text-danger">*</span></label>
+      <input class="form-control" id="leader_name" name="leader_name" value="{{ document.leader_name or '' }}" required>
     </div>
     <div class="col-12 col-md-4">
       <label class="form-label" for="actual_date">Ngày thực tế</label>
@@ -36,6 +36,24 @@
     <div class="col-12">
       <label class="form-label" for="file">File bổ sung</label>
       <input class="form-control" id="file" name="file" type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx">
+    </div>
+    <div class="col-12">
+      <div class="multi-capture-box" data-multi-capture data-capture-field-name="scan_images" data-capture-unit="trang" data-capture-empty="Chưa có trang nào">
+        <div data-capture-holder hidden></div>
+        <div class="d-flex flex-wrap align-items-start justify-content-between gap-2">
+          <div>
+            <div class="fw-semibold"><i class="bi bi-file-earmark-pdf"></i> Scan văn bản bổ sung sang PDF</div>
+            <div class="text-muted small">Chụp hoặc chọn nhiều trang; hệ thống ghép thành một file PDF khi cập nhật.</div>
+          </div>
+          <div class="capture-actions">
+            <button class="btn btn-outline-primary" type="button" data-capture-webcam><i class="bi bi-camera-video"></i> Mở camera</button>
+            <input class="form-control capture-camera-input" name="scan_images" type="file" accept="image/*" capture="environment" multiple data-capture-input>
+            <button class="btn btn-outline-secondary" type="button" data-capture-clear disabled><i class="bi bi-x-circle"></i> Xóa trang</button>
+          </div>
+        </div>
+        <div class="capture-count small mt-2" data-capture-count>Chưa có trang nào</div>
+        <div class="captured-file-list mt-2" data-capture-list></div>
+      </div>
     </div>
     {% endif %}
   </div>

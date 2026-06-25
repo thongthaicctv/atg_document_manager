@@ -17,9 +17,13 @@
       <div class="mb-3">
         <label class="form-label" for="user_id">Chọn user</label>
         <select class="form-select" id="user_id" name="user_id" required>
-          {% for user in users %}
-          <option value="{{ user.id }}">{{ user.full_name }} - {{ user.username }}</option>
-          {% endfor %}
+          {% if users %}
+            {% for user in users %}
+            <option value="{{ user.id }}">{{ user.full_name }} - {{ user.username }}</option>
+            {% endfor %}
+          {% else %}
+            <option value="">Chưa có tài khoản cán bộ phù hợp</option>
+          {% endif %}
         </select>
       </div>
       <div class="permission-grid mb-3">
@@ -33,7 +37,7 @@
         <label class="form-label" for="note">Ghi chú</label>
         <textarea class="form-control" id="note" name="note" rows="3"></textarea>
       </div>
-      <button class="btn btn-primary" type="submit"><i class="bi bi-save"></i> Lưu phân quyền</button>
+      <button class="btn btn-primary" type="submit" {% if not users %}disabled{% endif %}><i class="bi bi-save"></i> Lưu phân quyền</button>
     </form>
   </div>
 
@@ -54,7 +58,7 @@
             </tr>
           </thead>
           <tbody>
-            {% for permission in document.permissions %}
+            {% for permission in document.permissions if permission.user and permission.user.role == "user" %}
             <tr>
               <td>
                 <div class="fw-semibold">{{ permission.user.full_name if permission.user else "-" }}</div>

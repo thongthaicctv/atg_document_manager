@@ -33,7 +33,13 @@ def permission_form(
 ):
     document = _get_document_or_404(db, document_id)
     require_document_permission(db, current_user, document, "can_share")
-    users = [user for user in list_users(db) if user.status == "active" and user.id != document.owner_id]
+    users = [
+        user
+        for user in list_users(db)
+        if user.status == "active"
+        and user.role == "user"
+        and user.id != document.owner_id
+    ]
     return templates.TemplateResponse(
         "document_permissions.html",
         context(request, current_user, document=document, users=users),
@@ -59,7 +65,7 @@ def save_permission(
     document = _get_document_or_404(db, document_id)
     require_document_permission(db, current_user, document, "can_share")
     target_user = db.get(User, user_id)
-    if not target_user or target_user.status != "active":
+    if not target_user or target_user.status != "active" or target_user.role != "user":
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Người dùng nhận quyền không hợp lệ.")
     if target_user.id == document.owner_id:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Chủ văn bản đã có toàn quyền.")

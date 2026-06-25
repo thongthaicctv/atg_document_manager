@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import date
 
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
@@ -13,6 +13,15 @@ from app.services.report_service import export_documents_excel
 from app.views import context, templates
 
 router = APIRouter(prefix="/reports", tags=["reports"])
+
+
+def _optional_query_date(value: str | None, label: str) -> date | None:
+    if not value or not value.strip():
+        return None
+    try:
+        return date.fromisoformat(value.strip())
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"{label} không hợp lệ.") from exc
 
 
 @router.get("")
@@ -32,8 +41,8 @@ def report_form(
 
 @router.get("/export")
 def export_report(
-    from_date: date | None = Query(None),
-    to_date: date | None = Query(None),
+    from_date: str | None = Query(None),
+    to_date: str | None = Query(None),
     status_filter: str | None = Query(None, alias="status"),
     created_by_name: str | None = Query(None),
     owner_name: str | None = Query(None),
@@ -46,10 +55,12 @@ def export_report(
     current_user: User = Depends(get_current_user),
 ):
     require_root_or_admin(current_user)
+    parsed_from_date = _optional_query_date(from_date, "Từ ngày")
+    parsed_to_date = _optional_query_date(to_date, "Đến ngày")
     path = export_documents_excel(
         db,
-        from_date=from_date,
-        to_date=to_date,
+        from_date=parsed_from_date,
+        to_date=parsed_to_date,
         status=status_filter,
         created_by_name=created_by_name,
         owner_name=owner_name,

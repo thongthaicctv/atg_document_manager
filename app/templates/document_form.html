@@ -16,18 +16,33 @@
 
 <form method="post" enctype="multipart/form-data" class="surface form-surface" action="{{ '/documents/' ~ document.id ~ '/edit' if is_edit else '/documents/new' }}">
   <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <input type="hidden" name="form_branch" value="{{ form_branch }}">
   <div class="row g-3">
     <div class="col-12 col-md-3">
       <label class="form-label" for="document_code">Số thứ tự</label>
       <input class="form-control" id="document_code" value="{{ document.document_code if document else next_document_code }}" disabled>
     </div>
+    {% if show_source_document %}
+    <div class="col-12 col-md-3">
+      <label class="form-label" for="source_document_id">Chuyển văn bản nhận về liên quan</label>
+      <select class="form-select" id="source_document_id" name="source_document_id">
+        <option value="">Khác / không phát sinh từ văn bản nhận về</option>
+        {% for source in source_documents %}
+        <option value="{{ source.id }}" {% if document and document.source_document_id == source.id %}selected{% endif %}>
+          {{ source.document_code or source.id }}{% if source.document_number %} - {{ source.document_number }}{% endif %} - {{ source.title }}{% if source.incoming_action %} ({{ source.incoming_action|incoming_action_label }}){% endif %}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+    {% else %}
     <div class="col-12 col-md-3">
       <label class="form-label" for="document_number">Số/ký hiệu</label>
-      <input class="form-control" id="document_number" name="document_number" value="{{ document.document_number if document else '' }}" placeholder="ví dụ:thtt20260630" required>
+      <input class="form-control" id="document_number" name="document_number" value="{{ document.document_number if document else '' }}" placeholder="Nhập số/ký hiệu liên quan nếu có" required>
     </div>
+    {% endif %}
     <div class="col-12 col-md-3">
       <label class="form-label" for="document_type">Phân loại văn bản</label>
-      <select class="form-select" id="document_type" name="document_type">
+      <select class="form-select" id="document_type" name="document_type" required>
         <option value="">Chọn phân loại văn bản</option>
         {% for item in document_types %}
         <option value="{{ item.name }}" {% if document and document.document_type == item.name %}selected{% endif %}>{{ item.name }}</option>
@@ -45,6 +60,17 @@
         {% endfor %}
       </select>
     </div>
+    {% if show_incoming_action %}
+    <div class="col-12 col-md-3">
+      <label class="form-label" for="incoming_action">Hướng xử lý</label>
+      <select class="form-select" id="incoming_action" name="incoming_action" required>
+        <option value="">Chọn hướng xử lý</option>
+        {% for key, label in incoming_actions.items() %}
+        <option value="{{ key }}" {% if document and document.incoming_action == key %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% endif %}
 
     <div class="col-12 col-md-3">
       <label class="form-label" for="due_date">{{ date_label }}</label>
@@ -80,7 +106,7 @@
     <div class="col-12 col-md-4">
       <label class="form-label" for="sender_department">Đơn vị gửi đến</label>
       {% set selected_sender_department = document.sender_department if document else "" %}
-      <select class="form-select" id="sender_department" name="sender_department">
+      <select class="form-select" id="sender_department" name="sender_department" required>
         <option value="">Chọn đơn vị gửi đến</option>
         {% for item in departments %}
         <option value="{{ item.name }}" {% if selected_sender_department == item.name %}selected{% endif %}>{{ item.name }}</option>
@@ -94,7 +120,7 @@
     {% if show_receiver_department %}
     <div class="col-12 col-md-4">
       <label class="form-label" for="receiver_department">Đơn vị nhận văn bản</label>
-      <select class="form-select" id="receiver_department" name="receiver_department">
+      <select class="form-select" id="receiver_department" name="receiver_department" required>
         <option value="">Chọn đơn vị nhận văn bản</option>
         {% for item in departments %}
         <option value="{{ item.name }}" {% if document and document.receiver_department == item.name %}selected{% endif %}>{{ item.name }}</option>
@@ -117,6 +143,7 @@
             <div class="text-muted small">Chụp hoặc chọn nhiều trang; hệ thống ghép thành một file PDF khi lưu.</div>
           </div>
           <div class="capture-actions">
+            <button class="btn btn-outline-primary" type="button" data-capture-webcam><i class="bi bi-camera-video"></i> Mở camera</button>
             <input class="form-control capture-camera-input" name="scan_images" type="file" accept="image/*" capture="environment" multiple data-capture-input>
             <button class="btn btn-outline-secondary" type="button" data-capture-clear disabled><i class="bi bi-x-circle"></i> Xóa trang</button>
           </div>

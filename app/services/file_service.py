@@ -3,7 +3,6 @@ from __future__ import annotations
 import re
 import shutil
 import uuid
-from datetime import datetime
 from pathlib import Path
 
 from fastapi import HTTPException, UploadFile, status
@@ -14,6 +13,7 @@ from app.models.document import Document
 from app.models.document_file import DocumentFile
 from app.models.user import User
 from app.services.log_service import write_log
+from app.timezone import local_now
 
 DANGEROUS_EXTENSIONS = {"exe", "bat", "cmd", "js", "vbs", "ps1", "sh"}
 
@@ -36,7 +36,7 @@ def validate_extension(filename: str) -> str:
 
 
 def document_upload_dir(document_id: int) -> Path:
-    today = datetime.utcnow()
+    today = local_now()
     directory = get_upload_dir() / f"{today:%Y}" / f"{today:%m}" / f"{today:%d}" / str(document_id)
     directory.mkdir(parents=True, exist_ok=True)
     return directory

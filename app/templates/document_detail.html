@@ -5,9 +5,13 @@
   <div>
     <h1 class="h4 fw-bold mb-1">{{ document.title }}</h1>
     <div class="d-flex flex-wrap gap-2">
+      {% if document_branch == "incoming" %}
+      <span class="badge {{ document|incoming_status_class }}">{{ document|incoming_status_label }}</span>
+      {% else %}
       <span class="badge {{ document.status|status_class }}">{{ document.status|status_label }}</span>
+      {% endif %}
       <span class="badge text-bg-light border">{{ document.priority|priority_label }}</span>
-      <span class="text-muted small">Cập nhật {{ document.updated_at.strftime("%d/%m/%Y %H:%M") if document.updated_at else "" }}</span>
+      <span class="text-muted small">Cập nhật {{ document.updated_at|local_datetime }}</span>
     </div>
   </div>
   <div class="btn-toolbar gap-2">
@@ -15,7 +19,7 @@
     {% if permissions.can_edit %}
     <a class="btn btn-primary" href="/documents/{{ document.id }}/edit"><i class="bi bi-pencil-square"></i> Sửa</a>
     {% endif %}
-    {% if permissions.can_update_status %}
+    {% if permissions.can_update_status and document_branch != "incoming" %}
     <a class="btn btn-success" href="/documents/{{ document.id }}/status"><i class="bi bi-arrow-repeat"></i> Trạng thái</a>
     {% endif %}
     {% if permissions.can_share %}
@@ -30,8 +34,26 @@
       <h2 class="section-title">Thông tin văn bản</h2>
       <dl class="detail-grid">
         <div><dt>Số thứ tự</dt><dd>{{ document.document_code or "-" }}</dd></div>
+        {% if document_branch == "incoming" %}
         <div><dt>Số/ký hiệu</dt><dd>{{ document.document_number or "-" }}</dd></div>
+        {% endif %}
         <div><dt>Phân loại văn bản</dt><dd>{{ document.document_type or "-" }}</dd></div>
+        {% if document_branch == "incoming" %}
+        <div><dt>Hướng xử lý</dt><dd>{{ document.incoming_action|incoming_action_label }}</dd></div>
+        {% else %}
+        <div>
+          <dt>Văn bản nhận về liên quan</dt>
+          <dd>
+            {% if document.source_document %}
+            <a href="/documents/{{ document.source_document.id }}" class="text-decoration-none fw-semibold">{{ document.source_document.document_code or document.source_document.id }}</a>
+            {% if document.source_document.document_number %} - {{ document.source_document.document_number }}{% endif %}
+            <span class="text-muted">- {{ document.source_document.title }}</span>
+            {% else %}
+            Khác / không phát sinh từ văn bản nhận về
+            {% endif %}
+          </dd>
+        </div>
+        {% endif %}
         <div>
           <dt>{{ date_label }}</dt>
           <dd>
@@ -86,7 +108,7 @@
               <td>{{ file.file_type }}</td>
               <td>{{ (file.file_size / 1024)|round(1) }} KB</td>
               <td>{{ file.uploader.full_name if file.uploader else "-" }}</td>
-              <td>{{ file.uploaded_at.strftime("%d/%m/%Y %H:%M") if file.uploaded_at else "" }}</td>
+              <td>{{ file.uploaded_at|local_datetime }}</td>
               <td class="text-end">
                 <a class="btn btn-sm btn-outline-primary" href="/files/{{ file.id }}/download" title="Tải xuống"><i class="bi bi-download"></i></a>
                 {% if current_user.role == "root" %}
@@ -128,6 +150,7 @@
                   <div class="text-muted small">Chụp từng trang hoặc chọn nhiều ảnh; hệ thống ghép thành một file PDF.</div>
                 </div>
                 <div class="capture-actions">
+                  <button class="btn btn-outline-primary" type="button" data-capture-webcam><i class="bi bi-camera-video"></i> Mở camera</button>
                   <input class="form-control capture-camera-input" id="scan_images" name="scan_images" type="file" accept="image/*" capture="environment" multiple data-capture-input>
                   <button class="btn btn-outline-secondary" type="button" data-capture-clear disabled><i class="bi bi-x-circle"></i> Xóa trang</button>
                 </div>
@@ -147,22 +170,22 @@
     <section class="surface mb-3">
       <h2 class="section-title">Mốc xử lý</h2>
       <dl class="milestone-list">
-        <div><dt>Trình lãnh đạo</dt><dd>{{ document.submitted_to_leader_at.strftime("%d/%m/%Y") if document.submitted_to_leader_at else "-" }}</dd></div>
-        <div><dt>Lãnh đạo duyệt</dt><dd>{{ document.approved_at.strftime("%d/%m/%Y") if document.approved_at else "-" }}</dd></div>
-        <div><dt>Ban hành</dt><dd>{{ document.issued_at.strftime("%d/%m/%Y") if document.issued_at else "-" }}</dd></div>
-        <div><dt>Lưu hồ sơ</dt><dd>{{ document.archived_at.strftime("%d/%m/%Y") if document.archived_at else "-" }}</dd></div>
+        <div><dt>Trình lãnh đạo</dt><dd>{{ document.submitted_to_leader_at|local_date }}</dd></div>
+        <div><dt>Lãnh đạo duyệt</dt><dd>{{ document.approved_at|local_date }}</dd></div>
+        <div><dt>Ban hành</dt><dd>{{ document.issued_at|local_date }}</dd></div>
+        <div><dt>Lưu hồ sơ</dt><dd>{{ document.archived_at|local_date }}</dd></div>
       </dl>
     </section>
 
     <section class="surface mb-3">
       <h2 class="section-title">Phân quyền xử lý</h2>
       <div class="vstack gap-2">
-        {% for permission in document.permissions %}
+        {% for permission in document.permissions if permission.user and permission.user.role == "user" %}
         <div class="permission-chip">
           <strong>{{ permission.user.full_name if permission.user else "User" }}</strong>
           <span>
             {% if permission.can_edit %}Sửa{% endif %}
-            {% if permission.can_update_status %} · Trạng thái{% endif %}
+            {% if permission.can_update_status and document_branch != "incoming" %} · Trạng thái{% endif %}
             {% if permission.can_upload_file %} · Upload{% endif %}
             {% if permission.can_share %} · Phân quyền{% endif %}
           </span>
@@ -182,7 +205,7 @@
           <div class="timeline-body">
             <div class="fw-semibold">{{ log.action|action_label }}</div>
             <div class="small text-muted">
-              {{ log.performed_at.strftime("%d/%m/%Y %H:%M") if log.performed_at else "" }}
+              {{ log.performed_at|local_datetime }}
               · {{ log.performer.full_name if log.performer else "Hệ thống" }}
             </div>
             {% if log.old_status or log.new_status %}

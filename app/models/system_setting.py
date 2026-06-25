@@ -4,6 +4,7 @@ from sqlalchemy import DateTime, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
+from app.timezone import utc_now
 
 
 class SystemSetting(Base):
@@ -13,5 +14,4 @@ class SystemSetting(Base):
     setting_key: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
     setting_value: Mapped[str | None] = mapped_column(Text)
     description: Mapped[str | None] = mapped_column(Text)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, onupdate=utc_now)

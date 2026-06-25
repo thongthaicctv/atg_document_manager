@@ -23,7 +23,7 @@ def view_only_permissions() -> dict[str, bool]:
 
 
 def get_document_permissions(db: Session, user: User, document: Document) -> dict[str, bool]:
-    if user.role == "root":
+    if user.role in {"root", "admin"}:
         return full_permissions()
     if user.id == document.owner_id:
         return full_permissions()
@@ -37,7 +37,6 @@ def get_document_permissions(db: Session, user: User, document: Document) -> dic
     if row:
         return {key: bool(getattr(row, key)) for key in PERMISSION_KEYS}
 
-    # Admin can see/search/export all documents, but cannot edit/update unless granted.
     return view_only_permissions()
 
 

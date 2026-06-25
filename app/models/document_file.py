@@ -4,6 +4,7 @@ from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
+from app.timezone import utc_now
 
 
 class DocumentFile(Base):
@@ -19,8 +20,7 @@ class DocumentFile(Base):
     uploaded_by: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
     is_pdf: Mapped[bool] = mapped_column(Boolean, default=False)
     is_scanned: Mapped[bool] = mapped_column(Boolean, default=False)
-    uploaded_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
+    uploaded_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, index=True)
 
     document = relationship("Document", back_populates="files")
     uploader = relationship("User")
-

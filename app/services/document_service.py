@@ -4,24 +4,26 @@ from datetime import date, datetime, time
 
 from sqlalchemy import Select, and_, false, func, or_, select, text
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, aliased
 
 from app.constants import DOCUMENT_STATUSES
 from app.models.document import Document
 from app.models.document_log import DocumentLog
 from app.models.document_permission import DocumentPermission
+from app.models.document_type import DocumentType
 from app.models.user import User
 from app.services.log_service import write_log
+from app.timezone import local_date_end_as_utc, local_date_start_as_utc, local_now, utc_now
 
 RECEIVED_TIME_PREFIX = "Giờ nhận:"
 
 
 def _date_start(value: date | None) -> datetime | None:
-    return datetime.combine(value, time.min) if value else None
+    return local_date_start_as_utc(value)
 
 
 def _date_end(value: date | None) -> datetime | None:
-    return datetime.combine(value, time.max) if value else None
+    return local_date_end_as_utc(value)
 
 
 def build_document_query(
@@ -38,6 +40,9 @@ def build_document_query(
     receiver_department: str | None = None,
     status: str | None = None,
     document_type: str | None = None,
+    incoming_action: str | None = None,
+    incoming_pending: bool = False,
+    milestone: str | None = None,
     received_only: bool = False,
     document_type_names: list[str] | None = None,
     quick: str | None = None,
@@ -66,6 +71,26 @@ def build_document_query(
         filters.append(Document.status == status)
     if document_type:
         filters.append(Document.document_type.like(f"%{document_type.strip()}%"))
+    if incoming_action:
+        filters.append(Document.incoming_action == incoming_action.strip())
+    if incoming_pending:
+        RelatedDocument = aliased(Document)
+        related_outgoing_exists = (
+            select(RelatedDocument.id)
+            .where(RelatedDocument.source_document_id == Document.id)
+            .exists()
+        )
+        filters.append(or_(Document.incoming_action.is_(None), Document.incoming_action != "archive"))
+        filters.append(~related_outgoing_exists)
+    if milestone:
+        if milestone == "submitted_to_leader":
+            filters.append(Document.submitted_to_leader_at.is_not(None))
+        elif milestone == "leader_approved":
+            filters.append(Document.approved_at.is_not(None))
+        elif milestone == "issued":
+            filters.append(Document.issued_at.is_not(None))
+        elif milestone == "archived":
+            filters.append(or_(Document.archived_at.is_not(None), Document.status == "archived"))
     if document_type_names is not None:
         filters.append(Document.document_type.in_(document_type_names) if document_type_names else false())
     elif received_only:
@@ -159,6 +184,8 @@ def create_document(
     summary: str | None,
     content: str | None,
     document_type: str | None,
+    incoming_action: str | None,
+    source_document_id: int | None,
     proposer_name: str | None,
     department: str | None,
     sender_department: str | None,
@@ -174,6 +201,8 @@ def create_document(
         summary=summary or None,
         content=content or None,
         document_type=document_type or None,
+        incoming_action=incoming_action or None,
+        source_document_id=source_document_id,
         proposer_name=proposer_name or user.full_name,
         department=department or user.department,
         sender_department=sender_department or None,
@@ -212,6 +241,8 @@ def update_document(
     summary: str | None,
     content: str | None,
     document_type: str | None,
+    incoming_action: str | None,
+    source_document_id: int | None,
     proposer_name: str | None,
     department: str | None,
     sender_department: str | None,
@@ -225,6 +256,8 @@ def update_document(
     document.summary = summary or None
     document.content = content or None
     document.document_type = document_type or None
+    document.incoming_action = incoming_action or None
+    document.source_document_id = source_document_id
     document.proposer_name = proposer_name or None
     document.department = department or None
     document.sender_department = sender_department or None
@@ -263,7 +296,7 @@ def update_document_status(
     document.status = new_status
     document.leader_name = effective_leader_name or document.leader_name
     document.updated_by = user.id
-    actual_datetime = datetime.combine(actual_date, time.min) if actual_date else datetime.utcnow()
+    actual_datetime = datetime.combine(actual_date, time.min) if actual_date else utc_now()
 
     if new_status == "submitted_to_leader":
         document.submitted_to_leader_at = actual_datetime
@@ -290,10 +323,56 @@ def update_document_status(
 
 
 def count_by_status(db: Session) -> dict[str, int]:
-    rows = db.execute(select(Document.status, func.count(Document.id)).group_by(Document.status)).all()
+    incoming_type_names = list(
+        db.execute(select(DocumentType.name).where(DocumentType.branch == "incoming")).scalars()
+    )
+    outgoing_type_names = list(
+        db.execute(select(DocumentType.name).where(DocumentType.branch == "outgoing")).scalars()
+    )
+    incoming_filter = Document.document_type.in_(incoming_type_names) if incoming_type_names else false()
+    outgoing_filter = Document.document_type.in_(outgoing_type_names) if outgoing_type_names else ~incoming_filter
+    document_filter = or_(incoming_filter, outgoing_filter)
+    today = local_now().date()
+    RelatedDocument = aliased(Document)
+    related_outgoing_exists = (
+        select(RelatedDocument.id)
+        .where(RelatedDocument.source_document_id == Document.id)
+        .exists()
+    )
     counts = {status: 0 for status in DOCUMENT_STATUSES}
-    counts.update({status: int(count) for status, count in rows})
-    counts["total"] = int(db.execute(select(func.count(Document.id))).scalar_one())
+    counts["total"] = int(db.execute(select(func.count(Document.id)).where(document_filter)).scalar_one())
+
+    def count_where(*conditions) -> int:
+        return int(
+            db.execute(select(func.count(Document.id)).where(*conditions)).scalar_one()
+        )
+
+    counts["pending_incoming_total"] = count_where(
+        incoming_filter,
+        or_(Document.incoming_action.is_(None), Document.incoming_action != "archive"),
+        ~related_outgoing_exists,
+    )
+    counts["need_proposal_total"] = counts["pending_incoming_total"]
+    counts["new_draft"] = count_where(
+        outgoing_filter,
+        Document.created_at >= local_date_start_as_utc(today),
+        Document.created_at <= local_date_end_as_utc(today),
+    )
+    counts["submitted_to_leader"] = count_where(outgoing_filter, Document.status == "submitted_to_leader")
+    counts["leader_approved"] = count_where(outgoing_filter, Document.status == "leader_approved")
+    counts["need_revision"] = count_where(outgoing_filter, Document.status == "need_revision")
+    counts["revised"] = count_where(outgoing_filter, Document.status == "revised")
+    counts["issued"] = count_where(outgoing_filter, Document.status == "issued")
+    counts["archived"] = count_where(outgoing_filter, Document.status == "archived")
+    counts["cancelled"] = count_where(outgoing_filter, Document.status == "cancelled")
+    counts["incoming_archive_total"] = int(
+        db.execute(
+            select(func.count(Document.id)).where(
+                incoming_filter,
+                Document.incoming_action == "archive",
+            )
+        ).scalar_one()
+    )
     return counts
 
 
@@ -341,5 +420,5 @@ def dismiss_due_reminders(db: Session, *, document_ids: list[int], user: User, d
         return
     documents = db.execute(select(Document).where(Document.id.in_(document_ids))).scalars().all()
     for document in documents:
-        document.reminder_dismissed_at = datetime.utcnow()
+        document.reminder_dismissed_at = utc_now()
         document.reminder_dismissed_by = user.id

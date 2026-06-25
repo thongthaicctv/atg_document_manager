@@ -3,11 +3,21 @@ from __future__ import annotations
 from collections.abc import Generator
 
 from fastapi import Depends, HTTPException, Request, status
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
 from app.models.user import User
 from app.security import refresh_session_activity, session_is_expired
+
+
+class BootstrapRootUser:
+    id = 0
+    username = "root"
+    full_name = "Root khởi tạo"
+    role = "root"
+    status = "active"
+    bootstrap_mode = True
 
 
 def get_db() -> Generator[Session, None, None]:
@@ -27,13 +37,31 @@ def redirect_to_login() -> HTTPException:
 
 
 def get_current_user(request: Request, db: Session = Depends(get_db)) -> User:
+    if request.session.get("bootstrap_root"):
+        if session_is_expired(request):
+            request.session.clear()
+            raise redirect_to_login()
+        allowed_bootstrap_paths = ("/settings/system", "/logout")
+        if not request.url.path.startswith(allowed_bootstrap_paths):
+            raise HTTPException(
+                status_code=status.HTTP_303_SEE_OTHER,
+                detail="Chuyển tới cấu hình database.",
+                headers={"Location": "/settings/system"},
+            )
+        refresh_session_activity(request)
+        return BootstrapRootUser()
+
     user_id = request.session.get("user_id")
     if not user_id:
         raise redirect_to_login()
     if session_is_expired(request):
         request.session.clear()
         raise redirect_to_login()
-    user = db.get(User, int(user_id))
+    try:
+        user = db.get(User, int(user_id))
+    except (SQLAlchemyError, ValueError):
+        request.session.clear()
+        raise redirect_to_login()
     if not user or user.status != "active":
         request.session.clear()
         raise redirect_to_login()

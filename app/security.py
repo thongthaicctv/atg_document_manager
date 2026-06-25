@@ -7,6 +7,7 @@ from fastapi import HTTPException, Request, status
 from passlib.context import CryptContext
 
 from app.config import get_config
+from app.timezone import utc_now
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -40,7 +41,7 @@ def check_csrf_token(request: Request, form_token: str) -> None:
 
 
 def refresh_session_activity(request: Request) -> None:
-    request.session["last_activity"] = datetime.utcnow().isoformat()
+    request.session["last_activity"] = utc_now().isoformat()
 
 
 def session_is_expired(request: Request) -> bool:
@@ -52,4 +53,4 @@ def session_is_expired(request: Request) -> bool:
         last_activity = datetime.fromisoformat(raw)
     except ValueError:
         return True
-    return datetime.utcnow() - last_activity > timedelta(minutes=timeout)
+    return utc_now() - last_activity > timedelta(minutes=timeout)

@@ -4,6 +4,7 @@ from sqlalchemy import DateTime, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
+from app.timezone import utc_now
 
 
 class DocumentLog(Base):
@@ -18,10 +19,9 @@ class DocumentLog(Base):
     leader_name: Mapped[str | None] = mapped_column(String(255))
     file_id: Mapped[int | None] = mapped_column(ForeignKey("document_files.id"), nullable=True)
     performed_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True, index=True)
-    performed_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
+    performed_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, index=True)
     ip_address: Mapped[str | None] = mapped_column(String(80))
 
     document = relationship("Document", back_populates="logs")
     performer = relationship("User")
     file = relationship("DocumentFile")
-
