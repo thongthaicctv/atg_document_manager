@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Cài đặt ứng dụng - {{ app_name }}{% endblock %}
+{% block content %}
+{% set runtime = app_config.get("runtime", {}) %}
+
+<div class="page-head">
+  <div>
+    <h1 class="h4 fw-bold mb-1">Cài đặt ứng dụng</h1>
+    <p class="text-muted mb-0">Root và admin được phép cấu hình cách server chạy trên máy Windows.</p>
+  </div>
+</div>
+
+{% if saved %}
+<div class="alert alert-success" role="alert">
+  Đã lưu cài đặt ứng dụng.
+</div>
+{% endif %}
+
+<form method="post" action="/settings/runtime" class="surface form-surface">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+  <h2 class="section-title">Khởi động cùng Windows</h2>
+  <div class="form-check form-switch mb-2">
+    <input
+      class="form-check-input"
+      id="auto_start_windows"
+      name="auto_start_windows"
+      type="checkbox"
+      value="true"
+      {% if startup_status.enabled or runtime.get("auto_start_windows") %}checked{% endif %}
+      {% if not startup_status.available %}disabled{% endif %}
+    >
+    <label class="form-check-label fw-semibold" for="auto_start_windows">Tự mở ATG Document Manager khi đăng nhập Windows</label>
+  </div>
+  <p class="text-muted">
+    Khi bật, hệ thống sẽ tạo khóa tự khởi động trong tài khoản Windows hiện tại. Bản server onefile sẽ chạy ẩn và hiện icon ở khay hệ thống.
+  </p>
+
+  <div class="row g-3">
+    <div class="col-12">
+      <label class="form-label">Trạng thái hiện tại</label>
+      <div class="border rounded p-3 {% if startup_status.enabled %}border-success{% else %}border-secondary{% endif %}">
+        <div class="fw-semibold {% if startup_status.enabled %}text-success{% else %}text-muted{% endif %}">
+          {% if startup_status.enabled %}<i class="bi bi-check-circle"></i>{% else %}<i class="bi bi-info-circle"></i>{% endif %}
+          {{ startup_status.message }}
+        </div>
+        <div class="small text-muted mt-2">
+          Lệnh đang dùng: <span class="font-monospace">{{ startup_status.command or "-" }}</span>
+        </div>
+        <div class="small text-muted mt-1">
+          Lệnh dự kiến: <span class="font-monospace">{{ startup_status.expected_command }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="action-row">
+    <button class="btn btn-primary" type="submit" {% if not startup_status.available %}disabled{% endif %}>
+      <i class="bi bi-save"></i> Lưu cài đặt
+    </button>
+  </div>
+</form>
+{% endblock %}

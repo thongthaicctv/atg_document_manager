@@ -9,6 +9,7 @@ import re
 import subprocess
 from dataclasses import dataclass
 from datetime import date
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
@@ -19,7 +20,7 @@ LICENSE_TOKEN_PREFIX = "ATG1-"
 LICENSE_FILE_NAME = "license.key"
 
 PUBLIC_KEY_N = int(
-    "95c08d564b2273e8697eba91bfe261d279bec0f04b0a13a57a851ea0397a6c403cd769f5a4bb78bc56bb53202ac60b4eb007937ecef3ffe238ec3ff4bcbcab2ad0a91117f7e850323a9bdef733037dd24edf798cf58fa4c6302dfd4423fa2c531f8d189efcb89a555e901300c44ef11eee255371f9ef598982e0f3e3e09055f5a10fa6fb2fc4967a8fa6db0cda882d5f1d6392810fa73e77875047e9deb032329cc07346382f10c2123f951ef492f31c2c65e0fb2478358ed2e02ed379456902163ddea715d2f29194c465539ca08445e8e45c15fccedc6a37cf3f4aa5f133ada33641e05e908f1c940e453de9347dd3eb730739765ea54cb30e8b86fece82ad",
+    "ce2171cd44068dcda094d2a550c41e06448deac0bba852c33306c64175901fed7d349405cea9cff4561fbb44da6c7a3291bc07eb7c6d675ac915626d798254fb57fffaf7abdad5278975196cba881e87cd7d1092583d055bb1bab0c96e1119bf5be86ab1351f2f980a65e802adf64f026b9f2c353a1f96ea597a1bc13255f6fd024943a18283d42093d44d109826b441cbc1d061be0a60925fcb6cedff594618deff193b6904bc1aa603a6c6138635a51cc25927f611bf7c924202d5948802fdf928ec45b0d02677da4c3ce2fab1d92c4e3331a73f779343eeeec34252586e2ed445e7bb6fd230d34fcee49a829ddc23c92e1077b0f2942797cf74556afb0db9",
     16,
 )
 PUBLIC_KEY_E = 65537
@@ -97,6 +98,14 @@ def _read_windows_machine_guid() -> str:
 def _read_wmic_value(alias: str, field: str) -> str:
     if os.name != "nt":
         return ""
+    startupinfo = None
+    creationflags = 0
+    if hasattr(subprocess, "STARTUPINFO"):
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        startupinfo.wShowWindow = 0
+    if hasattr(subprocess, "CREATE_NO_WINDOW"):
+        creationflags = subprocess.CREATE_NO_WINDOW
     try:
         result = subprocess.run(
             ["wmic", alias, "get", field, "/value"],
@@ -104,6 +113,8 @@ def _read_wmic_value(alias: str, field: str) -> str:
             text=True,
             timeout=3,
             check=False,
+            startupinfo=startupinfo,
+            creationflags=creationflags,
         )
     except (OSError, subprocess.SubprocessError):
         return ""
@@ -134,6 +145,7 @@ def _machine_fingerprint_parts() -> list[str]:
     return parts
 
 
+@lru_cache(maxsize=1)
 def get_machine_code() -> str:
     raw = "|".join(_machine_fingerprint_parts()).encode("utf-8")
     digest = hashlib.sha256(raw).hexdigest().upper()[:32]

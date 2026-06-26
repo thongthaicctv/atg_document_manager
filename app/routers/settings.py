@@ -11,7 +11,7 @@ from app.models.department import Department
 from app.models.document_type import DocumentType
 from app.models.user import User
 from app.security import check_csrf_token
-from app.services import database_admin_service, department_service, document_type_service, license_service
+from app.services import database_admin_service, department_service, document_type_service, license_service, startup_service
 from app.views import context, templates
 
 router = APIRouter(prefix="/settings", tags=["settings"])
@@ -43,6 +43,46 @@ def system_settings(
             bootstrap_mode=bool(request.session.get("bootstrap_root")),
         ),
     )
+
+
+@router.get("/runtime")
+def runtime_settings(
+    request: Request,
+    current_user: User = Depends(get_current_user),
+):
+    require_root_or_admin(current_user)
+    app_config = get_config()
+    return templates.TemplateResponse(
+        "runtime_settings.html",
+        context(
+            request,
+            current_user,
+            app_config=app_config,
+            startup_status=startup_service.get_startup_status(),
+            saved=request.query_params.get("saved") == "1",
+        ),
+    )
+
+
+@router.post("/runtime")
+def runtime_settings_save(
+    request: Request,
+    csrf_token: str = Form(...),
+    auto_start_windows: bool = Form(False),
+    current_user: User = Depends(get_current_user),
+):
+    check_csrf_token(request, csrf_token)
+    require_root_or_admin(current_user)
+
+    try:
+        startup_service.set_auto_start(auto_start_windows)
+    except Exception as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+    app_config = get_config()
+    app_config.setdefault("runtime", {})["auto_start_windows"] = auto_start_windows
+    save_config(app_config)
+    return RedirectResponse("/settings/runtime?saved=1", status_code=303)
 
 
 @router.post("/system")

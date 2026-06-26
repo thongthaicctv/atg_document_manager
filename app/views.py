@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Any
 
 from fastapi import Request
 from fastapi.templating import Jinja2Templates
 
-from app.config import get_config
+from app.config import get_config, resource_path
 from app.constants import (
     DOCUMENT_PRIORITIES,
     DOCUMENT_STATUSES,
@@ -22,7 +21,7 @@ from app.security import get_csrf_token
 from app.services.document_service import extract_received_time
 from app.timezone import format_local_date, format_local_datetime, local_now
 
-TEMPLATES_DIR = Path(__file__).resolve().parent / "templates"
+TEMPLATES_DIR = resource_path("app", "templates")
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 

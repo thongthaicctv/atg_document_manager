@@ -37,6 +37,22 @@ body {
   white-space: normal;
 }
 
+.brand-lockup {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+}
+
+.brand-logo {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  object-fit: contain;
+  border-radius: 6px;
+  background: rgb(255 255 255 / 92%);
+  padding: 3px;
+}
+
 .app-sidebar .nav-link {
   border-radius: 6px;
   padding: .65rem .75rem;
@@ -91,6 +107,19 @@ body {
 .login-panel {
   width: min(100%, 420px);
   padding: 2rem;
+}
+
+.login-brand {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+}
+
+.login-logo {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  margin-bottom: .75rem;
 }
 
 .stats-grid {

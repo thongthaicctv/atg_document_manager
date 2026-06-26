@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 from ipaddress import ip_address
-from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import PlainTextResponse, RedirectResponse
+from fastapi.responses import FileResponse, PlainTextResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 
-from app.config import get_config
+from app.config import get_config, resource_path
 from app.routers import auth, dashboard, documents, files, permissions, reports, settings, users
 from app.services.license_service import get_license_status
 from app.views import context, templates
@@ -71,7 +70,7 @@ LICENSE_BYPASS_PREFIXES = (
     "/license-required",
     "/settings/system",
 )
-LICENSE_BYPASS_EXACT = {"/favicon.ico"}
+LICENSE_BYPASS_EXACT = {"/favicon.ico", "/logo.png"}
 
 
 def _license_bypass_allowed(path: str) -> bool:
@@ -95,8 +94,18 @@ async def require_machine_license(request: Request, call_next):
     return RedirectResponse("/license-required", status_code=303)
 
 
-STATIC_DIR = Path(__file__).resolve().parent / "static"
+STATIC_DIR = resource_path("app", "static")
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    return FileResponse(str(resource_path("icon.ico")))
+
+
+@app.get("/logo.png", include_in_schema=False)
+async def logo():
+    return FileResponse(str(resource_path("logo.png")))
 
 
 @app.get("/license-required")
@@ -157,4 +166,4 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("app.main:app", host=config["host"], port=int(config["port"]), reload=False)
+    uvicorn.run("app.main:app", host=config["host"], port=int(config["port"]), reload=False, access_log=False)

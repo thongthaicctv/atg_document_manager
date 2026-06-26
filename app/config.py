@@ -5,12 +5,19 @@ import ctypes
 import ctypes.wintypes
 import json
 import os
+import sys
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
 from urllib.parse import quote_plus
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if getattr(sys, "frozen", False):
+    PROJECT_ROOT = Path(sys.executable).resolve().parent
+    BUNDLE_ROOT = Path(getattr(sys, "_MEIPASS", PROJECT_ROOT))
+else:
+    PROJECT_ROOT = Path(__file__).resolve().parent.parent
+    BUNDLE_ROOT = PROJECT_ROOT
+
 CONFIG_PATH = PROJECT_ROOT / "config.json"
 CONFIG_LOCK_PATH = PROJECT_ROOT / ".config_encrypted"
 
@@ -51,6 +58,9 @@ DEFAULT_CONFIG: dict[str, Any] = {
         "enforce": True,
         "license_file": "",
     },
+    "runtime": {
+        "auto_start_windows": False,
+    },
 }
 
 
@@ -62,6 +72,10 @@ def _deep_merge(defaults: dict[str, Any], overrides: dict[str, Any]) -> dict[str
         else:
             merged[key] = value
     return merged
+
+
+def resource_path(*parts: str) -> Path:
+    return BUNDLE_ROOT.joinpath(*parts)
 
 
 class _DataBlob(ctypes.Structure):
@@ -179,7 +193,7 @@ def _write_encrypted_config(config: dict[str, Any]) -> None:
 def get_config() -> dict[str, Any]:
     if not CONFIG_PATH.exists():
         return DEFAULT_CONFIG
-    with CONFIG_PATH.open("r", encoding="utf-8") as fh:
+    with CONFIG_PATH.open("r", encoding="utf-8-sig") as fh:
         file_data = json.load(fh)
 
     if _is_encrypted_config(file_data):
