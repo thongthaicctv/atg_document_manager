@@ -322,6 +322,24 @@ def update_document_status(
     return document
 
 
+def delete_document(db: Session, *, document: Document, user: User, ip_address: str | None) -> list[str]:
+    file_paths = [file.file_path for file in list(document.files)]
+    document_label = f"{document.document_code or document.id} - {document.title}"
+    for child in list(document.related_outgoing_documents):
+        child.source_document_id = None
+        child.updated_by = user.id
+    db.delete(document)
+    write_log(
+        db,
+        document_id=None,
+        action="delete_document",
+        performed_by=user.id,
+        note=f"Xóa văn bản: {document_label}",
+        ip_address=ip_address,
+    )
+    return file_paths
+
+
 def count_by_status(db: Session) -> dict[str, int]:
     incoming_type_names = list(
         db.execute(select(DocumentType.name).where(DocumentType.branch == "incoming")).scalars()

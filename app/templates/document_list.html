@@ -174,6 +174,12 @@
         <td>{{ document.updated_at|local_datetime }}</td>
         <td class="text-end">
           <a class="btn btn-sm btn-outline-primary" href="/documents/{{ document.id }}" title="Xem chi tiết"><i class="bi bi-eye"></i></a>
+          {% if current_user.role == "root" %}
+          <form method="post" action="/documents/{{ document.id }}/delete" class="d-inline" data-confirm="Xóa văn bản này? Tất cả file, lịch sử và phân quyền của văn bản sẽ bị xóa.">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button class="btn btn-sm btn-outline-danger" type="submit" title="Xóa văn bản"><i class="bi bi-trash"></i></button>
+          </form>
+          {% endif %}
         </td>
       </tr>
       {% else %}

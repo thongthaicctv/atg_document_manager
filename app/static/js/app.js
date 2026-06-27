@@ -181,6 +181,14 @@ let cameraModal = null;
 let cameraVideo = null;
 let cameraSelect = null;
 
+function isMobileDevice() {
+  return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || "");
+}
+
+function directCameraHelpText() {
+  return "Chrome trên Windows chỉ cho mở webcam trực tiếp khi truy cập bằng localhost hoặc HTTPS. Trên máy cài server hãy mở http://localhost:8088, hoặc cấu hình HTTPS; nếu đang mở qua IP LAN thì bấm Chọn ảnh để dùng file đã chụp/scan.";
+}
+
 function stopCameraStream() {
   if (activeCameraStream) {
     activeCameraStream.getTracks().forEach(function (track) {
@@ -224,6 +232,9 @@ function ensureCameraModal() {
     '          <button class="btn btn-primary w-100" type="button" data-scan-shot><i class="bi bi-camera"></i> Chụp trang</button>',
     "        </div>",
     '        <div class="col-12 col-md-auto">',
+    '          <button class="btn btn-outline-primary w-100" type="button" data-scan-picker><i class="bi bi-images"></i> Chọn ảnh</button>',
+    "        </div>",
+    '        <div class="col-12 col-md-auto">',
     '          <button class="btn btn-outline-secondary w-100" type="button" data-bs-dismiss="modal">Xong</button>',
     "        </div>",
     "      </div>",
@@ -237,6 +248,7 @@ function ensureCameraModal() {
   cameraVideo = wrapper.querySelector(".scan-video");
   cameraSelect = wrapper.querySelector("#scanCameraSelect");
   const shotButton = wrapper.querySelector("[data-scan-shot]");
+  const pickerButton = wrapper.querySelector("[data-scan-picker]");
   const message = wrapper.querySelector("[data-scan-message]");
 
   cameraSelect.addEventListener("change", function () {
@@ -267,6 +279,12 @@ function ensureCameraModal() {
       "image/jpeg",
       0.94
     );
+  });
+
+  pickerButton.addEventListener("click", function () {
+    if (activeCameraContainer) {
+      openNativeCameraPicker(activeCameraContainer);
+    }
   });
 
   wrapper.addEventListener("hidden.bs.modal", function () {
@@ -304,9 +322,15 @@ async function startCamera(deviceId) {
   const message = document.querySelector("[data-scan-message]");
   if (!canUseDirectCamera()) {
     if (message) {
-      message.textContent = "Chrome chỉ cho mở camera trực tiếp khi dùng HTTPS hoặc localhost.";
+      message.textContent = directCameraHelpText();
+    }
+    if (cameraSelect) {
+      cameraSelect.disabled = true;
     }
     return;
+  }
+  if (cameraSelect) {
+    cameraSelect.disabled = false;
   }
 
   const video = deviceId
@@ -346,7 +370,7 @@ function openNativeCameraPicker(container) {
 }
 
 function openCameraModal(container) {
-  if (!canUseDirectCamera()) {
+  if (!canUseDirectCamera() && isMobileDevice()) {
     openNativeCameraPicker(container);
     return;
   }
@@ -378,8 +402,13 @@ function initMultiCapture(container) {
       openCameraModal(container);
     });
     if (!canUseDirectCamera()) {
-      cameraButton.innerHTML = '<i class="bi bi-camera"></i> Chụp/chọn trang';
-      cameraButton.title = "Chrome Android trên HTTP LAN sẽ dùng camera hệ thống của điện thoại.";
+      if (isMobileDevice()) {
+        cameraButton.innerHTML = '<i class="bi bi-camera"></i> Chụp/chọn trang';
+        cameraButton.title = "Chrome Android trên HTTP LAN sẽ dùng camera hệ thống của điện thoại.";
+      } else {
+        cameraButton.innerHTML = '<i class="bi bi-camera-video"></i> Mở camera';
+        cameraButton.title = directCameraHelpText();
+      }
     }
   }
 

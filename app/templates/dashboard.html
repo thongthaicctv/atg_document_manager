@@ -24,6 +24,10 @@
     <span class="stat-label">Tổng văn bản cần xử lý</span>
     <strong>{{ counts.pending_incoming_total }}</strong>
   </a>
+  <a class="stat-tile" href="/documents?received=1&incoming_action=archive">
+    <span class="stat-label">Hồ sơ lưu không cần xử lý</span>
+    <strong>{{ counts.incoming_archive_total }}</strong>
+  </a>
   <a class="stat-tile" href="/documents?branch=outgoing&from_date={{ today_date }}&to_date={{ today_date }}">
     <span class="stat-label">Văn bản mới tạo</span>
     <strong>{{ counts.new_draft }}</strong>

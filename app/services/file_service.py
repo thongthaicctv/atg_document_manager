@@ -108,6 +108,31 @@ def assert_path_inside_uploads(path: str) -> Path:
     return target
 
 
+def delete_upload_paths(file_paths: list[str]) -> None:
+    root = get_upload_dir().resolve()
+    for file_path in file_paths:
+        if not file_path:
+            continue
+        try:
+            target = Path(file_path).resolve()
+        except OSError:
+            continue
+        if root not in target.parents and target != root:
+            continue
+        try:
+            if target.is_file():
+                target.unlink(missing_ok=True)
+        except OSError:
+            continue
+        parent = target.parent
+        while parent != root and root in parent.parents:
+            try:
+                parent.rmdir()
+            except OSError:
+                break
+            parent = parent.parent
+
+
 def delete_document_file(db: Session, *, file: DocumentFile, user: User, ip_address: str | None) -> None:
     path = assert_path_inside_uploads(file.file_path)
     document_id = file.document_id

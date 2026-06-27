@@ -24,6 +24,17 @@ def _quote(value: str | Path) -> str:
     return f'"{value}"'
 
 
+def _command_executable_path(command: str) -> Path | None:
+    command = command.strip()
+    if not command:
+        return None
+    if command.startswith('"'):
+        end_quote = command.find('"', 1)
+        if end_quote > 1:
+            return Path(command[1:end_quote])
+    return Path(command.split(maxsplit=1)[0])
+
+
 def _find_packaged_server() -> Path | None:
     exact_path = PROJECT_ROOT / "dist" / "ATG_Document_Manager_Server.exe"
     if exact_path.exists():
@@ -83,12 +94,22 @@ def get_startup_status() -> StartupStatus:
             expected_command=expected_command,
             message="Chưa bật tự khởi động cùng Windows.",
         )
+    command_text = str(command)
+    executable_path = _command_executable_path(command_text)
+    command_exists = bool(executable_path and executable_path.exists())
+    command_matches = command_text.strip().lower() == expected_command.strip().lower()
+    if not command_exists:
+        message = "Đã bật tự khởi động nhưng đường dẫn server không còn tồn tại. Bấm Lưu cài đặt để cập nhật lại."
+    elif not command_matches:
+        message = "Đã bật tự khởi động nhưng đang trỏ tới lệnh cũ. Bấm Lưu cài đặt để cập nhật lại."
+    else:
+        message = "Đã bật tự khởi động cùng Windows."
     return StartupStatus(
         available=True,
-        enabled=str(command).strip().lower() == expected_command.strip().lower(),
-        command=str(command),
+        enabled=command_exists and command_matches,
+        command=command_text,
         expected_command=expected_command,
-        message="Đã bật tự khởi động cùng Windows.",
+        message=message,
     )
 
 

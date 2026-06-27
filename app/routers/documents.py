@@ -7,7 +7,7 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
 from app.constants import DOCUMENT_STATUSES, INCOMING_ACTIONS, INCOMING_DOCUMENT_STATUSES
-from app.dependencies import get_current_user, get_db
+from app.dependencies import get_current_user, get_db, require_root
 from app.models.document import Document
 from app.models.user import User
 from app.security import check_csrf_token
@@ -398,6 +398,28 @@ def document_detail(
     )
 
 
+@router.post("/{document_id}/delete")
+def document_delete(
+    request: Request,
+    document_id: int,
+    csrf_token: str = Form(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    check_csrf_token(request, csrf_token)
+    require_root(current_user)
+    document = _get_document_or_404(db, document_id)
+    file_paths = document_service.delete_document(
+        db,
+        document=document,
+        user=current_user,
+        ip_address=client_ip(request),
+    )
+    db.commit()
+    file_service.delete_upload_paths(file_paths)
+    return RedirectResponse("/documents", status_code=303)
+
+
 @router.get("/{document_id}/edit")
 def document_edit_form(
     request: Request,
@@ -513,7 +535,7 @@ async def document_status_update(
     leader_name: str | None = Form(None),
     actual_date: str | None = Form(None),
     note: str | None = Form(None),
-    file: UploadFile | None = File(None),
+    files: list[UploadFile] | None = File(None, alias="file"),
     scan_images: list[UploadFile] | None = File(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -535,9 +557,10 @@ async def document_status_update(
         actual_date=_optional_form_date(actual_date),
         note=note,
     )
-    if file and file.filename:
+    if _has_uploads(files):
         require_document_permission(db, current_user, document, "can_upload_file")
-        await file_service.save_upload_file(db, document=document, upload=file, user=current_user, ip_address=client_ip(request))
+        for upload in files or []:
+            await file_service.save_upload_file(db, document=document, upload=upload, user=current_user, ip_address=client_ip(request))
     if _has_uploads(scan_images):
         require_document_permission(db, current_user, document, "can_upload_file")
         pdf_path = await pdf_service.images_to_pdf(scan_images or [], output_name=f"scan_status_{document.id}.pdf")

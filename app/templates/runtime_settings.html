@@ -27,7 +27,7 @@
       name="auto_start_windows"
       type="checkbox"
       value="true"
-      {% if startup_status.enabled or runtime.get("auto_start_windows") %}checked{% endif %}
+      {% if startup_status.enabled %}checked{% endif %}
       {% if not startup_status.available %}disabled{% endif %}
     >
     <label class="form-check-label fw-semibold" for="auto_start_windows">Tự mở ATG Document Manager khi đăng nhập Windows</label>

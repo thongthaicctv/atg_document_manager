@@ -25,6 +25,12 @@
     {% if permissions.can_share %}
     <a class="btn btn-outline-primary" href="/documents/{{ document.id }}/permissions"><i class="bi bi-person-check"></i> Phân quyền</a>
     {% endif %}
+    {% if current_user.role == "root" %}
+    <form method="post" action="/documents/{{ document.id }}/delete" class="d-inline" data-confirm="Xóa văn bản này? Tất cả file, lịch sử và phân quyền của văn bản sẽ bị xóa.">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <button class="btn btn-outline-danger" type="submit"><i class="bi bi-trash"></i> Xóa</button>
+    </form>
+    {% endif %}
   </div>
 </div>
 

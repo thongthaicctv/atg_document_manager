@@ -17,6 +17,10 @@
 <form method="post" enctype="multipart/form-data" class="surface form-surface" action="{{ '/documents/' ~ document.id ~ '/edit' if is_edit else '/documents/new' }}">
   <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
   <input type="hidden" name="form_branch" value="{{ form_branch }}">
+  {% set selected_document_type = document.document_type if document else (document_types[0].name if document_types else '') %}
+  {% if form_branch == "incoming" %}
+  <input type="hidden" name="document_type" value="{{ selected_document_type }}">
+  {% endif %}
   <div class="row g-3">
     <div class="col-12 col-md-3">
       <label class="form-label" for="document_code">Số thứ tự</label>
@@ -40,26 +44,6 @@
       <input class="form-control" id="document_number" name="document_number" value="{{ document.document_number if document else '' }}" placeholder="Nhập số/ký hiệu liên quan nếu có" required>
     </div>
     {% endif %}
-    <div class="col-12 col-md-3">
-      <label class="form-label" for="document_type">Phân loại văn bản</label>
-      <select class="form-select" id="document_type" name="document_type" required>
-        <option value="">Chọn phân loại văn bản</option>
-        {% for item in document_types %}
-        <option value="{{ item.name }}" {% if document and document.document_type == item.name %}selected{% endif %}>{{ item.name }}</option>
-        {% endfor %}
-      </select>
-      {% if not document_types %}
-      <div class="form-text text-danger">Chưa có phân loại văn bản cho nhánh {{ form_branch_label }}. Hãy cấu hình tại menu Phân loại văn bản.</div>
-      {% endif %}
-    </div>
-    <div class="col-12 col-md-3">
-      <label class="form-label" for="priority">Mức độ ưu tiên</label>
-      <select class="form-select" id="priority" name="priority">
-        {% for key, label in document_priorities.items() %}
-        <option value="{{ key }}" {% if document and document.priority == key %}selected{% endif %}>{{ label }}</option>
-        {% endfor %}
-      </select>
-    </div>
     {% if show_incoming_action %}
     <div class="col-12 col-md-3">
       <label class="form-label" for="incoming_action">Hướng xử lý</label>
@@ -69,9 +53,32 @@
         <option value="{{ key }}" {% if document and document.incoming_action == key %}selected{% endif %}>{{ label }}</option>
         {% endfor %}
       </select>
+      {% if not document_types %}
+      <div class="form-text text-danger">Chưa có phân loại văn bản nhận về. Hãy cấu hình tại menu Phân loại văn bản.</div>
+      {% endif %}
+    </div>
+    {% else %}
+    <div class="col-12 col-md-3">
+      <label class="form-label" for="document_type">Phân loại văn bản</label>
+      <select class="form-select" id="document_type" name="document_type" required>
+        <option value="">Chọn phân loại văn bản</option>
+        {% for item in document_types %}
+        <option value="{{ item.name }}" {% if selected_document_type == item.name %}selected{% endif %}>{{ item.name }}</option>
+        {% endfor %}
+      </select>
+      {% if not document_types %}
+      <div class="form-text text-danger">Chưa có phân loại văn bản cho nhánh {{ form_branch_label }}. Hãy cấu hình tại menu Phân loại văn bản.</div>
+      {% endif %}
     </div>
     {% endif %}
-
+    <div class="col-12 col-md-3">
+      <label class="form-label" for="priority">Mức độ ưu tiên</label>
+      <select class="form-select" id="priority" name="priority">
+        {% for key, label in document_priorities.items() %}
+        <option value="{{ key }}" {% if document and document.priority == key %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
     <div class="col-12 col-md-3">
       <label class="form-label" for="due_date">{{ date_label }}</label>
       <input class="form-control" id="due_date" name="due_date" type="date" value="{{ document.due_date.isoformat() if document and document.due_date else '' }}">
