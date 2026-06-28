@@ -48,4 +48,15 @@ Tài khoản mặc định lần đầu:
 - Password: `admin@123`
 
 Sau khi đăng nhập lần đầu nên đổi mật khẩu root và thay `security.secret_key` trong `config.json`.
+## Khoi phuc tai khoan root
+
+Neu quen mat khau root, chay tren may server:
+
+```bat
+reset_root_password.bat
+```
+
+Nhap mat khau moi hai lan, sau do dang nhap lai web bang user `root`.
+Khi trien khai bang file onefile, build va dung `dist\ATG_Root_Recovery_Tool.exe` dat cung thu muc voi `config.json`.
+
 # atg_document_manager

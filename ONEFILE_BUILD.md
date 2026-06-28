@@ -60,3 +60,25 @@ Ví dụ xem mã máy:
 ```bat
 ATG_License_Tool.exe machine
 ```
+
+## Root recovery tool
+
+Chay:
+
+```bat
+build_root_recovery_tool_onefile.bat
+```
+
+Ket qua:
+
+```text
+dist\ATG_Root_Recovery_Tool.exe
+```
+
+Khi quen mat khau root:
+
+1. Dat `ATG_Root_Recovery_Tool.exe` cung thu muc voi `config.json` tren may server.
+2. Chay tool, nhap mat khau moi hai lan.
+3. Dang nhap web bang user `root` va mat khau moi.
+
+Tool chi reset/tai tao tai khoan `root` trong database hien tai, khong can dang nhap web va khong goi API online.
