@@ -9,8 +9,10 @@ Phần mềm web quản lý văn bản, công văn và giấy tờ đề xuất 
 3. Cài thư viện:
 
 ```bat
-pip install -r requirements.txt
+python -m pip install --no-index --find-links D:\ATG_DOCUMENT\wheels -r requirements.txt
 ```
+
+Khi triển khai offline, chuẩn bị sẵn thư mục wheel nội bộ rồi cài bằng lệnh trên; không cài trực tiếp từ Internet trên máy khách.
 
 4. Nếu chưa tạo user/database trong MariaDB, chạy bằng tài khoản root MariaDB:
 
@@ -35,10 +37,10 @@ run_server.bat
 Hoặc:
 
 ```bat
-uvicorn app.main:app --host 0.0.0.0 --port 8088
+python server_onefile.py --console
 ```
 
-Nếu đã activate môi trường ảo `.venv`, có thể dùng `python init_db.py` và `python -m app.main`.
+Server sẽ đọc `host` và `port` trong `config.json`. Nếu đã activate môi trường ảo `.venv`, có thể dùng `python init_db.py` và `python server_onefile.py --console`.
 
 Tài khoản mặc định lần đầu:
 

@@ -5,7 +5,7 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.dependencies import get_current_user, get_db, require_root
+from app.dependencies import get_current_user, get_db
 from app.models.document import Document
 from app.models.document_permission import DocumentPermission
 from app.models.user import User
@@ -51,7 +51,7 @@ def save_permission(
     request: Request,
     document_id: int,
     csrf_token: str = Form(...),
-    user_id: int = Form(...),
+    user_ids: list[int] = Form(...),
     can_view: bool = Form(False),
     can_edit: bool = Form(False),
     can_update_status: bool = Form(False),
@@ -64,24 +64,32 @@ def save_permission(
     check_csrf_token(request, csrf_token)
     document = _get_document_or_404(db, document_id)
     require_document_permission(db, current_user, document, "can_share")
-    target_user = db.get(User, user_id)
-    if not target_user or target_user.status != "active" or target_user.role != "user":
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Người dùng nhận quyền không hợp lệ.")
-    if target_user.id == document.owner_id:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Chủ văn bản đã có toàn quyền.")
-    upsert_permission(
-        db,
-        document=document,
-        target_user_id=target_user.id,
-        granted_by=current_user.id,
-        can_view=can_view,
-        can_edit=can_edit,
-        can_update_status=can_update_status,
-        can_upload_file=can_upload_file,
-        can_share=can_share,
-        note=note,
-        ip_address=client_ip(request),
-    )
+    target_ids = list(dict.fromkeys(user_ids))
+    if not target_ids:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Chưa chọn tài khoản nhận quyền.")
+
+    targets = db.execute(select(User).where(User.id.in_(target_ids))).scalars().all()
+    targets_by_id = {user.id: user for user in targets}
+    ip_address = client_ip(request)
+    for target_id in target_ids:
+        target_user = targets_by_id.get(target_id)
+        if not target_user or target_user.status != "active" or target_user.role != "user":
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Người dùng nhận quyền không hợp lệ.")
+        if target_user.id == document.owner_id:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Chủ văn bản đã có toàn quyền.")
+        upsert_permission(
+            db,
+            document=document,
+            target_user_id=target_user.id,
+            granted_by=current_user.id,
+            can_view=can_view,
+            can_edit=can_edit,
+            can_update_status=can_update_status,
+            can_upload_file=can_upload_file,
+            can_share=can_share,
+            note=note,
+            ip_address=ip_address,
+        )
     db.commit()
     return RedirectResponse(f"/documents/{document.id}/permissions", status_code=303)
 
@@ -96,7 +104,6 @@ def revoke(
     current_user: User = Depends(get_current_user),
 ):
     check_csrf_token(request, csrf_token)
-    require_root(current_user)
     document = _get_document_or_404(db, document_id)
     require_document_permission(db, current_user, document, "can_share")
     permission = db.execute(

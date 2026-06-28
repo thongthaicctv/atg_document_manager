@@ -15,8 +15,8 @@
       <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
       <h2 class="section-title">Cấp hoặc cập nhật quyền</h2>
       <div class="mb-3">
-        <label class="form-label" for="user_id">Chọn user</label>
-        <select class="form-select" id="user_id" name="user_id" required>
+        <label class="form-label" for="user_ids">Chọn user</label>
+        <select class="form-select" id="user_ids" name="user_ids" size="8" multiple required>
           {% if users %}
             {% for user in users %}
             <option value="{{ user.id }}">{{ user.full_name }} - {{ user.username }}</option>
@@ -25,6 +25,7 @@
             <option value="">Chưa có tài khoản cán bộ phù hợp</option>
           {% endif %}
         </select>
+        <div class="form-text">Có thể chọn nhiều tài khoản cùng lúc bằng Ctrl/Shift hoặc chạm chọn trên điện thoại.</div>
       </div>
       <div class="permission-grid mb-3">
         <label class="form-check"><input class="form-check-input" type="checkbox" name="can_view" checked> <span>Quyền xem</span></label>
@@ -70,14 +71,10 @@
               <td>{% if permission.can_upload_file %}<i class="bi bi-check2 text-success"></i>{% endif %}</td>
               <td>{% if permission.can_share %}<i class="bi bi-check2 text-success"></i>{% endif %}</td>
               <td class="text-end">
-                {% if current_user.role == "root" %}
                 <form method="post" action="/documents/{{ document.id }}/permissions/{{ permission.id }}/revoke" data-confirm="Thu hồi quyền này?">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                   <button class="btn btn-sm btn-outline-danger" type="submit" title="Thu hồi quyền"><i class="bi bi-person-x"></i></button>
                 </form>
-                {% else %}
-                <span class="text-muted">-</span>
-                {% endif %}
               </td>
             </tr>
             {% else %}

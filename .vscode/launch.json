@@ -1,0 +1,28 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "ATG Debug Server (theo config.json)",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}\\server_onefile.py",
+      "args": [
+        "--console"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "jinja": true,
+      "env": {
+        "PYTHONUTF8": "1",
+        "ATG_SERVER_CONSOLE": "1"
+      },
+      "python": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
+      "serverReadyAction": {
+        "pattern": "Uvicorn running on (http://[^ ]+)",
+        "uriFormat": "%s",
+        "action": "openExternally"
+      }
+    }
+  ]
+}

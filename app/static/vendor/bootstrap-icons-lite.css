@@ -1,0 +1,62 @@
+.bi {
+  display: inline-block;
+  width: 1.05em;
+  min-width: 1.05em;
+  line-height: 1;
+  text-align: center;
+  vertical-align: -.125em;
+}
+
+.bi::before {
+  content: "*";
+  font-style: normal;
+  font-weight: 700;
+}
+
+.bi-arrow-counterclockwise::before { content: "↺"; }
+.bi-arrow-left::before { content: "←"; }
+.bi-arrow-repeat::before { content: "↻"; }
+.bi-box-arrow-in-right::before { content: "↪"; }
+.bi-box-arrow-right::before { content: "↪"; }
+.bi-camera::before { content: "▣"; }
+.bi-camera-video::before { content: "▣"; }
+.bi-check2::before { content: "✓"; }
+.bi-check2-circle::before { content: "✓"; }
+.bi-check-circle::before { content: "✓"; }
+.bi-database-add::before { content: "DB+"; font-size: .72em; }
+.bi-database-check::before { content: "DB✓"; font-size: .72em; }
+.bi-database-gear::before { content: "DB"; font-size: .75em; }
+.bi-diagram-3::before { content: "◇"; }
+.bi-download::before { content: "↓"; }
+.bi-exclamation-triangle::before { content: "!"; }
+.bi-eye::before { content: "⊙"; }
+.bi-file-earmark-excel::before { content: "X"; }
+.bi-file-earmark-pdf::before { content: "PDF"; font-size: .68em; }
+.bi-file-earmark-plus::before { content: "+"; }
+.bi-file-earmark-text::before { content: "□"; }
+.bi-folder-check::before { content: "□✓"; font-size: .72em; }
+.bi-folder2-open::before { content: "□"; }
+.bi-gear::before { content: "⚙"; }
+.bi-house::before { content: "⌂"; }
+.bi-images::before { content: "▧"; }
+.bi-inbox::before { content: "▱"; }
+.bi-info-circle::before { content: "i"; }
+.bi-lock::before { content: "🔒"; }
+.bi-pencil-square::before { content: "✎"; }
+.bi-people::before { content: "👥"; }
+.bi-person-check::before { content: "✓"; }
+.bi-person-plus::before { content: "+"; }
+.bi-person-x::before { content: "x"; }
+.bi-plus-circle::before { content: "+"; }
+.bi-save::before { content: "↓"; }
+.bi-search::before { content: "⌕"; }
+.bi-shield-check::before { content: "✓"; }
+.bi-shield-exclamation::before { content: "!"; }
+.bi-shield-lock::before { content: "🔒"; }
+.bi-speedometer2::before { content: "◷"; }
+.bi-tags::before { content: "◇"; }
+.bi-trash::before { content: "×"; }
+.bi-unlock::before { content: "□"; }
+.bi-upload::before { content: "↑"; }
+.bi-windows::before { content: "▦"; }
+.bi-x-circle::before { content: "×"; }

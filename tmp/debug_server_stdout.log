@@ -1,0 +1,2 @@
+INFO:     127.0.0.1:61514 - "GET / HTTP/1.1" 303 See Other
+INFO:     127.0.0.1:61514 - "GET /login HTTP/1.1" 200 OK

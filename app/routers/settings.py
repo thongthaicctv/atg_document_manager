@@ -90,6 +90,7 @@ def system_settings_save(
     request: Request,
     csrf_token: str = Form(...),
     app_name: str = Form(...),
+    app_port: int = Form(...),
     database_host: str = Form(...),
     database_port: int = Form(...),
     database_user: str = Form(...),
@@ -100,6 +101,8 @@ def system_settings_save(
 ):
     check_csrf_token(request, csrf_token)
     require_root(current_user)
+    if app_port < 1 or app_port > 65535:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Port web server không hợp lệ.")
     if database_port < 1 or database_port > 65535:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Port database không hợp lệ.")
     required_values = [database_host, database_user, database_name]
@@ -111,6 +114,7 @@ def system_settings_save(
 
     app_config = get_config()
     app_config["app_name"] = app_name.strip()
+    app_config["port"] = app_port
     app_config["database"] = {
         "host": database_host.strip(),
         "port": database_port,
