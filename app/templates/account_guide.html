@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Hướng dẫn sử dụng - {{ app_name }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1 class="h4 fw-bold mb-1">Hướng dẫn sử dụng</h1>
+    <p class="text-muted mb-0">Tài liệu thao tác dành cho tài khoản cán bộ.</p>
+  </div>
+  <a href="/" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Dashboard</a>
+</div>
+
+<section class="surface guide-surface">
+  <div class="guide-content">
+    {{ guide_html }}
+  </div>
+</section>
+{% endblock %}

@@ -41,11 +41,15 @@
           <li class="nav-item"><a class="nav-link" href="/users"><i class="bi bi-people"></i> Tài khoản</a></li>
           <li class="nav-item"><a class="nav-link" href="/reports"><i class="bi bi-file-earmark-excel"></i> Báo cáo</a></li>
           {% endif %}
+          <li class="nav-item"><a class="nav-link" href="/account/guide"><i class="bi bi-info-circle"></i> Hướng dẫn sử dụng</a></li>
           {% endif %}
         </ul>
         <div class="sidebar-user d-flex align-items-center gap-2 text-white small mt-lg-auto pt-lg-3">
           <span>{{ current_user.full_name }}</span>
           <span class="badge text-bg-light">{{ current_user.role|role_label }}</span>
+          {% if not current_user.bootstrap_mode|default(false) %}
+          <a class="btn btn-sm btn-outline-light" href="/account/password" title="Đổi mật khẩu"><i class="bi bi-key"></i></a>
+          {% endif %}
           <form method="post" action="/logout" class="m-0 ms-auto">
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <button class="btn btn-sm btn-outline-light" type="submit" title="Đăng xuất"><i class="bi bi-box-arrow-right"></i></button>

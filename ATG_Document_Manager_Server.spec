@@ -5,7 +5,7 @@ a = Analysis(
     ['server_onefile.py'],
     pathex=[],
     binaries=[],
-    datas=[('app\\templates', 'app\\templates'), ('app\\static', 'app\\static'), ('icon.ico', '.'), ('logo.png', '.')],
+    datas=[('app\\templates', 'app\\templates'), ('app\\static', 'app\\static'), ('HUONG_DAN_SU_DUNG_CAN_BO.md', '.'), ('icon.ico', '.'), ('logo.png', '.')],
     hiddenimports=['passlib.handlers.bcrypt', 'pymysql', 'pystray', 'pystray._win32', 'uvicorn.lifespan.on', 'uvicorn.loops.auto', 'uvicorn.protocols.http.auto', 'uvicorn.protocols.websockets.auto'],
     hookspath=[],
     hooksconfig={},

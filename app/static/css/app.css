@@ -360,6 +360,55 @@ dd {
   padding: 2rem;
 }
 
+.guide-surface {
+  max-width: 980px;
+}
+
+.guide-content {
+  line-height: 1.65;
+}
+
+.guide-content h1 {
+  font-size: 1.65rem;
+  font-weight: 800;
+  margin: 0 0 .5rem;
+}
+
+.guide-content h2 {
+  padding-top: 1rem;
+  margin: 1.25rem 0 .7rem;
+  font-size: 1.25rem;
+  font-weight: 800;
+  border-top: 1px solid #edf2f7;
+}
+
+.guide-content h3 {
+  margin: 1rem 0 .45rem;
+  font-size: 1.05rem;
+  font-weight: 750;
+}
+
+.guide-content p {
+  margin-bottom: .65rem;
+}
+
+.guide-content ul,
+.guide-content ol {
+  padding-left: 1.35rem;
+  margin-bottom: .85rem;
+}
+
+.guide-content li {
+  margin-bottom: .25rem;
+}
+
+.guide-content code {
+  padding: .1rem .28rem;
+  border-radius: 4px;
+  color: #164875;
+  background: #eef5fb;
+}
+
 .btn {
   min-height: 38px;
 }

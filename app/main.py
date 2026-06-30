@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.config import get_config, resource_path
-from app.routers import auth, dashboard, documents, files, permissions, reports, settings, users
+from app.routers import account, auth, dashboard, documents, files, permissions, reports, settings, users
 from app.services.license_service import get_license_status
 from app.views import context, templates
 
@@ -128,6 +128,7 @@ async def license_required(request: Request):
     )
 
 app.include_router(auth.router)
+app.include_router(account.router)
 app.include_router(dashboard.router)
 app.include_router(documents.router)
 app.include_router(files.router)

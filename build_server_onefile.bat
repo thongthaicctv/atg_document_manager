@@ -32,6 +32,7 @@ echo [2/3] Dong goi server onefile...
   --icon "icon.ico" ^
   --add-data "app\templates;app\templates" ^
   --add-data "app\static;app\static" ^
+  --add-data "HUONG_DAN_SU_DUNG_CAN_BO.md;." ^
   --add-data "icon.ico;." ^
   --add-data "logo.png;." ^
   --hidden-import passlib.handlers.bcrypt ^
